@@ -1,4 +1,4 @@
-# Pulumi cost estimation CLI
+# Cost estimation CLI
 
 This tool serves the purpose of ensuring consistent cost estimation in your release (continous deployment) pipeline running Pulumi infrastructure code before deploying cloud resources.
 The tool is open source and free to use, fork or modify for both personal and commercial projects regardless of company size.
