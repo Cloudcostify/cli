@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Authors>Cloudcostify</Authors>
+    <Company>Cloudcostify</Company>
+    <Copyright>Copyright © Cloudcostify</Copyright>
+    <PackageProjectUrl>https://cloudcostify.app/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/cloudcostify/cli</RepositoryUrl>
+  </PropertyGroup>
+</Project>

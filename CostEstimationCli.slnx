@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CostEstimationCli.Tests/CostEstimationCli.Tests.csproj" />
+    <Project Path="src/CostEstimationCli/CostEstimationCli.csproj" />
+  </Folder>
+</Solution>

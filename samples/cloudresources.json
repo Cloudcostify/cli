@@ -1,0 +1,103 @@
+{
+  "config": {
+    "azure-native:location": "WestUS"
+  },
+  "steps": [
+    {
+      "op": "create",
+      "urn": "urn:pulumi:dev::Costwiz::pulumi:pulumi:Stack::Costwiz-dev",
+      "newState": {
+        "urn": "urn:pulumi:dev::Costwiz::pulumi:pulumi:Stack::Costwiz-dev",
+        "custom": false,
+        "type": "pulumi:pulumi:Stack"
+      },
+      "detailedDiff": null
+    },
+    {
+      "op": "create",
+      "urn": "urn:pulumi:dev::Costwiz::azure-native:compute:VirtualMachine::SuperVM",
+      "provider": "urn:pulumi:dev::Costwiz::pulumi:providers:azure-native::default_1_47_0::04da6b54-80e4-46f7-96ec-b56ff0331ba9",
+      "newState": {
+        "urn": "urn:pulumi:dev::Costwiz::azure-native:compute:VirtualMachine::SuperVM",
+        "custom": true,
+        "type": "azure-native:compute:VirtualMachine",
+        "inputs": {
+          "hardwareProfile": {
+            "vmSize": "Standard_D2s_v3"
+          },
+          "location": "westus",
+          "networkProfile": {
+            "networkInterfaces": [
+              {
+                "id": "/subscriptions/{subscription-id}/resourceGroups/myResourceGroup/providers/Microsoft.Network/networkInterfaces/{existing-nic-name}",
+                "primary": true
+              }
+            ]
+          },
+          "osProfile": {
+            "adminPassword": "{your-password}",
+            "adminUsername": "{your-username}",
+            "computerName": "SuperVM",
+            "linuxConfiguration": {
+              "patchSettings": {
+                "assessmentMode": "ImageDefault"
+              },
+              "provisionVMAgent": true
+            }
+          },
+          "resourceGroupName": "myResourceGroup",
+          "storageProfile": {
+            "imageReference": {
+              "offer": "UbuntuServer",
+              "publisher": "Canonical",
+              "sku": "16.04-LTS",
+              "version": "latest"
+            },
+            "osDisk": {
+              "createOption": "FromImage",
+              "managedDisk": {
+                "storageAccountType": "Standard_LRS"
+              },
+              "name": "myVMosdisk"
+            }
+          },
+          "vmName": "SuperVM"
+        },
+        "parent": "urn:pulumi:dev::Costwiz::pulumi:pulumi:Stack::Costwiz-dev",
+        "provider": "urn:pulumi:dev::Costwiz::pulumi:providers:azure-native::default_1_47_0::04da6b54-80e4-46f7-96ec-b56ff0331ba9",
+        "propertyDependencies": {
+          "hardwareProfile": null,
+          "location": null,
+          "networkProfile": null,
+          "osProfile": null,
+          "resourceGroupName": null,
+          "storageProfile": null,
+          "vmName": null
+        },
+        "aliases": [
+          "urn:pulumi:dev::Costwiz::azure-native:compute/v20150615:VirtualMachine::SuperVM",
+          "urn:pulumi:dev::Costwiz::azure-native:compute/v20160330:VirtualMachine::SuperVM",
+          "urn:pulumi:dev::Costwiz::azure-native:compute/v20160430preview:VirtualMachine::SuperVM",
+          "urn:pulumi:dev::Costwiz::azure-native:compute/v20170330:VirtualMachine::SuperVM",
+          "urn:pulumi:dev::Costwiz::azure-native:compute/v20171201:VirtualMachine::SuperVM",
+          "urn:pulumi:dev::Costwiz::azure-native:compute/v20180401:VirtualMachine::SuperVM",
+          "urn:pulumi:dev::Costwiz::azure-native:compute/v20180601:VirtualMachine::SuperVM",
+          "urn:pulumi:dev::Costwiz::azure-native:compute/v20181001:VirtualMachine::SuperVM",
+          "urn:pulumi:dev::Costwiz::azure-native:compute/v20190301:VirtualMachine::SuperVM",
+          "urn:pulumi:dev::Costwiz::azure-native:compute/v20190701:VirtualMachine::SuperVM",
+          "urn:pulumi:dev::Costwiz::azure-native:compute/v20191201:VirtualMachine::SuperVM",
+          "urn:pulumi:dev::Costwiz::azure-native:compute/v20200601:VirtualMachine::SuperVM",
+          "urn:pulumi:dev::Costwiz::azure-native:compute/v20201201:VirtualMachine::SuperVM",
+          "urn:pulumi:dev::Costwiz::azure-native:compute/v20210301:VirtualMachine::SuperVM",
+          "urn:pulumi:dev::Costwiz::azure-native:compute/v20210401:VirtualMachine::SuperVM",
+          "urn:pulumi:dev::Costwiz::azure-native:compute/v20210701:VirtualMachine::SuperVM"
+        ]
+      },
+      "detailedDiff": null
+    }
+  ],
+  "duration": 3888696600,
+  "changeSummary": {
+    "create": 2
+  }
+}

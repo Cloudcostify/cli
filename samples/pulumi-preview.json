@@ -1,0 +1,79 @@
+{
+  "config": {
+    "azure-native:location": "WestEurope"
+  },
+  "steps": [
+    {
+      "op": "create",
+      "urn": "urn:pulumi:dev::PulumiSandbox::pulumi:pulumi:Stack::PulumiSandbox-dev",
+      "newState": {
+        "urn": "urn:pulumi:dev::PulumiSandbox::pulumi:pulumi:Stack::PulumiSandbox-dev",
+        "custom": false,
+        "type": "pulumi:pulumi:Stack"
+      },
+      "detailedDiff": null
+    },
+    {
+      "op": "create",
+      "urn": "urn:pulumi:dev::PulumiSandbox::azure-native:resources:ResourceGroup::test-rg",
+      "provider": "urn:pulumi:dev::PulumiSandbox::pulumi:providers:azure-native::default_1_97_0::04da6b54-80e4-46f7-96ec-b56ff0331ba9",
+      "newState": {
+        "urn": "urn:pulumi:dev::PulumiSandbox::azure-native:resources:ResourceGroup::test-rg",
+        "custom": true,
+        "type": "azure-native:resources:ResourceGroup",
+        "inputs": {
+          "__createBeforeDelete": true,
+          "location": "WestEurope",
+          "resourceGroupName": "test-rgc1b5caef"
+        },
+        "parent": "urn:pulumi:dev::PulumiSandbox::pulumi:pulumi:Stack::PulumiSandbox-dev",
+        "provider": "urn:pulumi:dev::PulumiSandbox::pulumi:providers:azure-native::default_1_97_0::04da6b54-80e4-46f7-96ec-b56ff0331ba9"
+      },
+      "detailedDiff": null
+    },
+    {
+      "op": "create",
+      "urn": "urn:pulumi:dev::PulumiSandbox::azure-native:containerservice:ManagedCluster::sandbox-aks-cfy",
+      "provider": "urn:pulumi:dev::PulumiSandbox::pulumi:providers:azure-native::default_1_97_0::04da6b54-80e4-46f7-96ec-b56ff0331ba9",
+      "newState": {
+        "urn": "urn:pulumi:dev::PulumiSandbox::azure-native:containerservice:ManagedCluster::sandbox-aks-cfy",
+        "custom": true,
+        "type": "azure-native:containerservice:ManagedCluster",
+        "inputs": {
+          "__createBeforeDelete": true,
+          "agentPoolProfiles": [
+            {
+              "count": 3,
+              "name": "agentpool",
+              "osType": "Linux",
+              "vmSize": "Standard_B2s"
+            }
+          ],
+          "dnsPrefix": "sandbox-aks-cfy",
+          "kubernetesVersion": "1.21.2",
+          "location": "WestEurope",
+          "resourceGroupName": "04da6b54-80e4-46f7-96ec-b56ff0331ba9",
+          "resourceName": "sandbox-aks-cfy98cf18ef"
+        },
+        "parent": "urn:pulumi:dev::PulumiSandbox::pulumi:pulumi:Stack::PulumiSandbox-dev",
+        "dependencies": [
+          "urn:pulumi:dev::PulumiSandbox::azure-native:resources:ResourceGroup::test-rg"
+        ],
+        "provider": "urn:pulumi:dev::PulumiSandbox::pulumi:providers:azure-native::default_1_97_0::04da6b54-80e4-46f7-96ec-b56ff0331ba9",
+        "propertyDependencies": {
+          "agentPoolProfiles": null,
+          "dnsPrefix": null,
+          "kubernetesVersion": null,
+          "resourceGroupName": [
+            "urn:pulumi:dev::PulumiSandbox::azure-native:resources:ResourceGroup::test-rg"
+          ]
+        }
+      },
+      "detailedDiff": null
+    }
+  ],
+  "duration": 6002986000,
+  "changeSummary": {
+    "create": 3
+  }
+}
