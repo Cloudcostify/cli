@@ -237,10 +237,8 @@ We love contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details
 
 ## Roadmap
 
-- [ ] Expanded AWS resource support
+- [ ] AWS resource support
 - [ ] Google Cloud Platform (GCP) support
-- [ ] Cost optimization recommendations
-- [ ] Historical cost tracking
 - [ ] Budget alerts and notifications
 - [ ] Docker image distribution
 - [ ] Cross-platform binaries (Windows, Linux, macOS)
