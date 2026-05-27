@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Cloudcostify CLI
+=======
+# Cost estimation CLI
+>>>>>>> e65b9b03dbb4f16b9c411d7c21f5e53591a15edb
 
 [![Build and Test](https://github.com/cloudcostify/cli/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/cloudcostify/cli/actions/workflows/build-and-test.yml)
 [![License](https://img.shields.io/badge/license-Custom-blue.svg)](LICENSE)
