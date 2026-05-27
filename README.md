@@ -37,7 +37,7 @@ More resources and providers coming soon!
 
 - .NET 10.0 SDK or later
 - Pulumi CLI installed (not required for demo mode)
-- Valid Cloudcostify API key (sign up at [cloudcostify.app](https://cloudcostify.app/))
+- Valid Cloudcostify API key (sign up at [cloudcostify.io](https://cloudcostify.io/))
 
 ### Demo Mode (Quick Start)
 
@@ -174,27 +174,6 @@ steps:
     PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
 ```
 
-## Example Output
-
-```
-╭─────────────────────────────────────╮
-│   Cost Estimation Results           │
-╰─────────────────────────────────────╯
-
-╭──────────────┬──────────────────╮
-│ Time Period  │      Cost        │
-├──────────────┼──────────────────┤
-│ Per Hour     │ $2.50 USD        │
-│ Per Day      │ $60.00 USD       │
-│ Per Week     │ $420.00 USD      │
-│ Per Month    │ $1,825.00 USD    │
-│ Per Year     │ $21,900.00 USD   │
-╰──────────────┴──────────────────╯
-
-Cloud Provider: Azure
-Currency: USD
-```
-
 ## Development
 
 ### Building
@@ -242,7 +221,7 @@ src/
 
 ## Contributing
 
-We ❤️ contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
+We love contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
 
 - Setting up your development environment
 - Code style guidelines
@@ -252,7 +231,7 @@ We ❤️ contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detai
 
 ## Community
 
-- **Website**: [cloudcostify.app](https://cloudcostify.app/)
+- **Website**: [cloudcostify.io](https://cloudcostify.io/)
 - **Slack**: [cloudcostify.slack.com](https://cloudcostify.slack.com)
 - **Issues**: [GitHub Issues](https://github.com/cloudcostify/cli/issues)
 
@@ -274,17 +253,11 @@ This project is licensed under a custom license - see the [LICENSE](LICENSE) fil
 
 **TL;DR**: Free to use, fork, and modify for personal and commercial projects. Cannot be sold as a standalone product.
 
-## Acknowledgments
-
-- Built with [Pulumi Automation API](https://www.pulumi.com/docs/using-pulumi/automation-api/)
-- Powered by [Spectre.Console](https://spectreconsole.net/) for beautiful terminal output
-- Tested with [TUnit](https://github.com/thomhurst/TUnit)
-
 ## Support
 
 If you encounter issues or have questions:
 
-1. Check the [documentation](https://cloudcostify.app/)
+1. Check the [documentation](https://cloudcostify.io/)
 2. Search [existing issues](https://github.com/cloudcostify/cli/issues)
 3. Join our [Slack community](https://cloudcostify.slack.com)
 4. Create a [new issue](https://github.com/cloudcostify/cli/issues/new/choose)
