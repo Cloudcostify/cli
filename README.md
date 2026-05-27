@@ -264,4 +264,4 @@ If you encounter issues or have questions:
 
 ---
 
-Made with purpose by the Cloudcostify team
+Engineered with purpose by the Cloudcostify team
