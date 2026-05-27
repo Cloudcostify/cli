@@ -8,6 +8,10 @@
 [![License](https://img.shields.io/badge/license-Custom-blue.svg)](LICENSE)
 [![.NET Version](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/)
 
+
+<img width="696" height="709" alt="image" src="https://github.com/user-attachments/assets/7277a15e-df0a-4a95-add8-b706e7710476" />
+
+
 > Pulumi cost estimation CLI for consistent cost estimation in your CI/CD pipeline
 
 This tool ensures consistent cloud infrastructure cost estimation in your release pipeline running Pulumi infrastructure code before deploying resources. Get cost estimates for your infrastructure changes before they hit production.
