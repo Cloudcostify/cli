@@ -1,0 +1,162 @@
+.github/ISSUE_TEMPLATE/feature_request.md
+  s_29c90118c7dc60::t_b5f552d7c59aae 1-73
+src/CostEstimationCli/Models/LicenseResponseModel.cs
+  s_29c90118c7dc60::t_da88516c17b951 1-11
+README.md
+  s_29c90118c7dc60::t_a44ef9a72a8df6 1,3-5,7,9,11,13-19,21,23-37,39,52-84,87-293
+  s_29c90118c7dc60::t_d457845c6fa341 85-86
+  s_29c90118c7dc60::t_a3563a0c473494 38,40-51
+src/CostEstimationCli/appsettings.json
+  s_29c90118c7dc60::t_57177da408ba6a 12-14
+  s_29c90118c7dc60::t_2912845169876f 18,20-21
+  s_29c90118c7dc60::t_e4fd88b06eeb22 1-11,15-17,19,22-24
+src/CostEstimationCli/Repositories/ApiRepository.cs
+  s_29c90118c7dc60::t_24e151066113e1 1-123
+LICENSE
+  s_29c90118c7dc60::t_80dfbe488b2265 1-28
+src/CostEstimationCli/Services/Providers/CdkProvider.cs
+  s_29c90118c7dc60::t_f9815206ca08a6 1-92
+src/CostEstimationCli/Repositories/IApiRepository.cs
+  s_29c90118c7dc60::t_071a6e67415ad1 1-25
+.editorconfig
+  s_29c90118c7dc60::t_e461ffacfcf789 1-148
+src/CostEstimationCli/Models/CostEstimateResponseModel.cs
+  s_29c90118c7dc60::t_2cd909c9967f60 43,45
+  s_29c90118c7dc60::t_53b718ea3c9a63 1-42,44,46-70
+DEMO_MODE.md
+  s_29c90118c7dc60::t_a35e69611654bf 7,9
+  s_29c90118c7dc60::t_467069827dc2db 1-6,8,10-19,21,23,30-127
+  s_29c90118c7dc60::t_a04f8bbcf6a769 20,22,24-29
+global.json
+  s_29c90118c7dc60::t_d1d03b246f6c3e 1-6
+MIGRATION_SUMMARY.md
+  s_29c90118c7dc60::t_24aa19fbb9000c 1-331
+src/CostEstimationCli/appsettings.Development.json
+  h_aa722e8ed10195 1-14,16,19-21
+  s_29c90118c7dc60::t_2311cdb12ec0f2 15,17-18
+CHANGELOG.md
+  s_29c90118c7dc60::t_945e6d778f7d86 1-76
+CONTRIBUTING.md
+  s_29c90118c7dc60::t_eb4c5acc1befb6 1-186
+src/CostEstimationCli.Tests/Repositories/ApiRepositoryTests.cs
+  s_29c90118c7dc60::t_610bbd95618e26 1-105
+QUICK_START.md
+  s_29c90118c7dc60::t_9332179370004f 1-70
+.github/ISSUE_TEMPLATE/bug_report.md
+  s_29c90118c7dc60::t_3e86255112735c 1-75
+src/CostEstimationCli/Services/Providers/IInfrastructureProvider.cs
+  s_29c90118c7dc60::t_a249a580c5b293 1-27
+.gitignore
+  s_29c90118c7dc60::t_66a7b6d91aa357 359,362
+  s_29c90118c7dc60::t_dd8306fb6602d9 351-358,360-361,363-365
+src/CostEstimationCli/CostEstimationCli.csproj
+  s_51193a5b1704a6::t_66f2b2009bd51d 20
+  s_29c90118c7dc60::t_562f7f3f7f6b06 1-19,21-26,30-31,39
+  s_29c90118c7dc60::t_e7e1d63940542f 27-29
+  s_29c90118c7dc60::t_3ee766f23c34a4 32-38
+src/CostEstimationCli/UI/ConsoleRenderer.cs
+  s_29c90118c7dc60::t_94d5b8b9ec783e 1-11,13,15,41-42,45,48-50,52-54,56,65-68,83-85,88,91-93,96,99-102,104,109,111,116,122,125-127,135-138,149-150,154,174,209,212-214,216,218-226,233,236,238,241,243-246,248,250,261-262,266,268,270,274-275,279,289-290,293-294,303-305,307-309,320-323,326,329-330,357,361,363,372,375
+  s_51193a5b1704a6::t_c3dce03b7e3726 156-157,232
+  s_48f22aab0d6a15::t_8704246f122a05 12,14,39-40,43-44,51,55,57-58,69,71-72,75-78,82,87,89-90,98,103,105,108,112-113,118,121,123,129,132-134,152-153,163,190,207,210,215,217,227,230,239-240,242,256-257,263-265,267,269,277-278,284,291-292,306,311-312,314-316,318-319,324-325,331-336,338-339,344-345,351-354,356,358-360,362,364-366,371,373-374
+  h_aa722e8ed10195 16-18,20-24,26,46-47,59-64,70,73,79-81,86,94-95,97,106-107,110,114-115,117,119-120,130-131,139-148,151,155,159-162,164-170,172,178,180-189,193-197,202-206,211,228-229,231,234-235,237,247,249,251-255,259-260,271-273,276,280-283,285-288,295,297,299-301,310,313,317,327-328,340-343,346-350,355,369
+  s_bd6b6236cb7edf::t_977847c993fbd0 337,367-368,370
+  s_bd6b6236cb7edf::t_ba4b0c5f61ae00 19,25,27-28,35,38,74
+  s_db6614fce07551::t_9b7456f377348d 29-34,36-37
+  s_bd6b6236cb7edf::t_3419a1486151e5 124,128
+src/CostEstimationCli/Program.cs
+  s_29c90118c7dc60::t_f7a6997ccce4b7 174-192,194-200,213-226
+  s_29c90118c7dc60::t_c072eaf7ec70b2 72,77,86-87,90-92
+  s_29c90118c7dc60::t_7f1dd7f8f14fc0 1-3,6-17,20-26,67,93,95-100,102-104,106-173,201-212,228
+  s_29c90118c7dc60::t_8a4ed11b95179c 4,18-19
+  s_48f22aab0d6a15::t_5c9c01066d1a93 5,28,33,40-43,49,56-60,65-66
+  s_29c90118c7dc60::t_ebe0db85b10487 29-31,35-39,44-45,50-55,61-64,68-71,78
+  s_29c90118c7dc60::t_efcf175c0f8b39 32,34,46-48
+  s_48f22aab0d6a15::t_403dcb775a50b6 73-76,79,81,83,85,88-89,94,101,105
+  s_29c90118c7dc60::t_a4984b163ac3ab 80,82,84
+  s_48f22aab0d6a15::t_cc8f3d4927853a 193
+  s_29c90118c7dc60::t_95bda6c100e5fe 27
+  s_29c90118c7dc60::t_cd1d51f4fe7d1e 227
+.github/PULL_REQUEST_TEMPLATE.md
+  s_29c90118c7dc60::t_77ff84d856cf38 1-104
+src/CostEstimationCli.Tests/CostEstimationCli.Tests.csproj
+  s_29c90118c7dc60::t_aaf1a278e0495d 1-21
+src/CostEstimationCli/Configuration/CostEstimationSettings.cs
+  s_29c90118c7dc60::t_6a4e45dc5a9fc7 33-34
+  s_29c90118c7dc60::t_fa10ceaf2e2e58 1-32,35-54
+Directory.Build.props
+  s_29c90118c7dc60::t_d23359cdd00551 1-14
+src/CostEstimationCli/Services/ICostEstimationService.cs
+  s_29c90118c7dc60::t_06aece30309aa5 1-16
+src/CostEstimationCli/Services/CostEstimationService.cs
+  s_29c90118c7dc60::t_a7d0a8c7043c1f 1-2,4-12,14-17,19-21,23-31,33,37,39,41-42,44,46,48,50-58
+  s_29c90118c7dc60::t_216c2b26138e94 3,13,18,22,32,34-36,38,40,43,45,47,49
+src/CostEstimationCli.Tests/Services/CostEstimationServiceTests.cs
+  s_29c90118c7dc60::t_d2db0d9134b344 1-3,5-13,15-19,21-25,27-30,32-37,39-46,48-55,57-63,66-69,71-80,82-85,87-88,91,93-96,98-103,105,108-109,111,113-119
+  s_29c90118c7dc60::t_2fdbe0b8a00761 4,14,20
+  s_29c90118c7dc60::t_2f5976f20253ce 56,64-65,70,81
+  s_29c90118c7dc60::t_8686359ed3f2c1 110
+  s_29c90118c7dc60::t_25dcce90f76de7 104,106-107,112
+  s_29c90118c7dc60::t_c27ef03bea60b5 47
+  s_29c90118c7dc60::t_38618b47ec1016 86,89-90,92,97
+samples/README.md
+  s_29c90118c7dc60::t_2fd70b1ee9f67f 1-26
+src/CostEstimationCli/Services/Providers/PulumiProvider.cs
+  s_29c90118c7dc60::t_9893e48b9fda76 1-100
+src/CostEstimationCli/Services/Providers/BicepProvider.cs
+  s_29c90118c7dc60::t_0b918890b07f6d 1-144
+src/CostEstimationCli/Services/ProviderDetectionService.cs
+  s_29c90118c7dc60::t_b17aefedafed33 1-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "671e05702b6990b072db84626626f0f046ab6b94",
+  "prompts": {},
+  "humans": {
+    "h_aa722e8ed10195": {
+      "author": "Casper Rubæk <9870550+Trubador@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_29c90118c7dc60": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "45b8469f-fe9b-4601-9beb-0b0b9a7461c3",
+        "model": "claude-sonnet-4-5-20250929"
+      },
+      "human_author": "Casper Rubæk <9870550+Trubador@users.noreply.github.com>"
+    },
+    "s_48f22aab0d6a15": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "61a8db60-898e-4ba3-888f-da2b972d648b",
+        "model": "gpt-5-mini"
+      },
+      "human_author": "Casper Rubæk <9870550+Trubador@users.noreply.github.com>"
+    },
+    "s_51193a5b1704a6": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "7c2657c8-14bc-480b-9425-fa5e568b6cb7",
+        "model": "gpt-5-mini"
+      },
+      "human_author": "Casper Rubæk <9870550+Trubador@users.noreply.github.com>"
+    },
+    "s_bd6b6236cb7edf": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "e86db6ac-1efe-4cf6-9687-2183e6059aed",
+        "model": "gpt-5-mini"
+      },
+      "human_author": "Casper Rubæk <9870550+Trubador@users.noreply.github.com>"
+    },
+    "s_db6614fce07551": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "0b555c1b-1fbc-4ce9-ac10-a11b90c2496b",
+        "model": "gpt-5-mini"
+      },
+      "human_author": "Casper Rubæk <9870550+Trubador@users.noreply.github.com>"
+    }
+  }
+}
