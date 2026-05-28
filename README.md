@@ -1,4 +1,4 @@
-<img width="696" height="709" alt="image" src="https://github.com/user-attachments/assets/7277a15e-df0a-4a95-add8-b706e7710476" />
+<img width="699" height="1185" alt="image" src="https://github.com/user-attachments/assets/d58481f7-5a9a-4e61-a02c-1a9a8cf08da9" />
 
 [![Build and Test](https://github.com/cloudcostify/cli/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/cloudcostify/cli/actions/workflows/build-and-test.yml)
 [![License](https://img.shields.io/badge/license-Custom-blue.svg)](LICENSE)
