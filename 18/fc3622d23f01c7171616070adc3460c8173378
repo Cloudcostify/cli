@@ -1,0 +1,91 @@
+src/CostEstimationCli/Services/Sanitization/IPayloadSanitizer.cs
+  s_4e73c8df5b2294::t_bde49bb492ba29 1-42
+src/CostEstimationCli.Tests/Services/PayloadSanitizerTests.cs
+  s_c0f837896fa9f6::t_7c1257b6f3ea95 611,615-616,619-620
+  s_4e73c8df5b2294::t_ce033744799d05 1-194,253-610,612-614,617-618,621-959,1093
+  s_c0f837896fa9f6::t_4d434bf0d0ba56 960-1092
+  s_c0f837896fa9f6::t_ce42c12631479b 195-252
+samples/demo-response.json
+  s_03b34ee0a748fa::t_cf8e52f8a28404 22,44-50,52-56
+src/CostEstimationCli/Models/CostEstimateResponseModel.cs
+  s_54512f0e45800b::t_bf46752fe5483c 27
+  s_b291bb202a8897::t_c5748f1255f22a 68-77
+  s_03b34ee0a748fa::t_0b5655cea25d37 28,30
+src/CostEstimationCli/Program.cs
+  s_c9c0f4e8a35574::t_bb6f7f868bb585 94-123
+  s_4e73c8df5b2294::t_c3fb98a4feba3d 262-264
+  s_c9c0f4e8a35574::t_dbf8ac351937d4 203,207,221-227,235
+src/CostEstimationCli/UI/ConsoleRenderer.cs
+  s_54512f0e45800b::t_f12cc8bb743bca 227-229,243,246-247,250,257,264,271,278,285,291,299,301,304,307,310,313
+  s_b291bb202a8897::t_58b1112e593806 138-149,272,277,444,479
+  s_03b34ee0a748fa::t_0b5655cea25d37 335-354
+  s_c9c0f4e8a35574::t_ccb06b4828f103 112,124,165,187,475,477-478,480-482,503,558
+  s_b291bb202a8897::t_00022ba3d4ff74 446-470
+  s_54512f0e45800b::t_bf46752fe5483c 230-242,244-245,252-255,259-262,266-269,273-276,280-283,287-290,292-295,297-298,300,302-303,305-306,308-309,311-312,314-315,318-320,323,329,375,380,392,397,412,417,429,434
+src/CostEstimationCli/Configuration/CostEstimationSettings.cs
+  s_c9c0f4e8a35574::t_2ba549b4752567 54-58
+src/CostEstimationCli/Services/Sanitization/PayloadSanitizer.cs
+  s_4e73c8df5b2294::t_2cb723e397965b 1-96,100-141,155-251,255,275-349,357-553,560-563
+  s_c9c0f4e8a35574::t_ef6b67e4f12f99 97-99,252-254,256-274
+  s_c0f837896fa9f6::t_503f9f22a118d5 142-154,350-356,554-559
+samples/pulumi-preview.json
+  s_03b34ee0a748fa::t_59d294996b12c3 56-60
+  s_c0f837896fa9f6::t_1346ea5cde0b94 99
+  s_c0f837896fa9f6::t_146a2beae8c120 158
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "18fc3622d23f01c7171616070adc3460c8173378",
+  "prompts": {},
+  "sessions": {
+    "s_03b34ee0a748fa": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "a852d7bf-d0b9-440c-96a2-26b6f1e3166b",
+        "model": "gpt-5-mini"
+      },
+      "human_author": "Casper Rubæk <9870550+Trubador@users.noreply.github.com>"
+    },
+    "s_4e73c8df5b2294": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "a5360c6f-ceb0-4a41-b031-4e280809598f",
+        "model": "gpt-5-mini"
+      },
+      "human_author": "Casper Rubæk <9870550+Trubador@users.noreply.github.com>"
+    },
+    "s_54512f0e45800b": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "85f7eacc-89f1-48ce-ba9c-e623d2ac7068",
+        "model": "gpt-5-mini"
+      },
+      "human_author": "Casper Rubæk <9870550+Trubador@users.noreply.github.com>"
+    },
+    "s_b291bb202a8897": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "bd318565-6de4-4783-b4b5-2113ff578665",
+        "model": "gpt-5-mini"
+      },
+      "human_author": "Casper Rubæk <9870550+Trubador@users.noreply.github.com>"
+    },
+    "s_c0f837896fa9f6": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "5b63d2ab-2a8e-401c-8c32-514fb9a4e941",
+        "model": "gpt-5-mini"
+      },
+      "human_author": "Casper Rubæk <9870550+Trubador@users.noreply.github.com>"
+    },
+    "s_c9c0f4e8a35574": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "650a5ee1-e7f0-4afc-b90e-980480a9329d",
+        "model": "gpt-5-mini"
+      },
+      "human_author": "Casper Rubæk <9870550+Trubador@users.noreply.github.com>"
+    }
+  }
+}
