@@ -1,0 +1,30 @@
+src/CostEstimationCli/appsettings.Development.json
+  s_adf9f5089deddf::t_c20bcc01d81d26 11
+src/CostEstimationCli/Services/DeltaCalculationService.cs
+  s_adf9f5089deddf::t_02745c4865b501 78-81,85-88
+  s_adf9f5089deddf::t_7fc462b6cf6bec 150-160
+src/CostEstimationCli/UI/ConsoleRenderer.cs
+  s_adf9f5089deddf::t_06396a0d9b7193 411,484
+  s_adf9f5089deddf::t_12b9e887390a11 288,304-305
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "04ac3ebd7f982a4f18b345057e0e8b2a9da51327",
+  "prompts": {},
+  "humans": {
+    "h_aa722e8ed10195": {
+      "author": "Casper Rubæk <9870550+Trubador@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_adf9f5089deddf": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "fac629ec-6710-46c3-840d-43301db4473e",
+        "model": "gpt-5-mini"
+      },
+      "human_author": "Casper Rubæk <9870550+Trubador@users.noreply.github.com>"
+    }
+  }
+}
