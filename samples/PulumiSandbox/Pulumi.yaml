@@ -1,0 +1,3 @@
+name: PulumiSandbox
+description: Sandbox Pulumi project for developing and testing Cloudcostify cost estimation
+runtime: dotnet

@@ -66,6 +66,12 @@ public class CostEstimateResponseModel
     public AggregateCost aggregateCosts { get; set; } = new();
     public List<CloudResource> cloudResources { get; set; } = new();
     public List<UnsupportedResource>? unsupportedResources { get; set; }
+
+    /// <summary>
+    /// Client-side computed cost delta derived from Pulumi preview step operations.
+    /// Null when the provider JSON does not contain a <c>steps</c> array.
+    /// </summary>
+    public CostDelta? Delta { get; set; }
 }
 
 /// <summary>

@@ -28,6 +28,22 @@ class Program
 
             var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
+            // ── Feature 4: Load in-repository config (.saasfactory-cost.json) ──
+            var configLoader = serviceProvider.GetRequiredService<LocalProjectConfigLoader>();
+            var localConfig  = await configLoader.LoadAsync(cliArgs.WorkingDirectory);
+
+            // Resolve effective budget: CLI flag > local config > null
+            var effectiveBudget = cliArgs.Budget
+                ?? localConfig?.Budget?.MonthlyLimit;
+
+            // Collect ignore lists from local config
+            IReadOnlyList<string>? ignoreTypes = localConfig?.Ignore?.ResourceTypes?.Count > 0
+                ? localConfig.Ignore.ResourceTypes
+                : null;
+            IReadOnlyList<string>? ignoreNames = localConfig?.Ignore?.ResourceNames?.Count > 0
+                ? localConfig.Ignore.ResourceNames
+                : null;
+
             // Detect or select provider (before showing UI, so we can pass it to RenderHeader)
             var detectionService = serviceProvider.GetRequiredService<ProviderDetectionService>();
             IInfrastructureProvider? provider;
@@ -65,10 +81,13 @@ class Program
             // Render the premium header + environment card
             ConsoleRenderer.RenderHeader(configuration, provider);
 
-            // Create cost estimation service with detected provider
-            var apiRepo = serviceProvider.GetRequiredService<IApiRepository>();
+            // ── Feature 3: Wire up DeltaCalculationService ─────────────────────
+            var apiRepo       = serviceProvider.GetRequiredService<IApiRepository>();
             var costEstLogger = serviceProvider.GetRequiredService<ILogger<CostEstimationService>>();
-            var costEstimationService = new CostEstimationService(provider, apiRepo, costEstLogger);
+            var deltaLogger   = serviceProvider.GetRequiredService<ILogger<DeltaCalculationService>>();
+            var deltaService  = new DeltaCalculationService(apiRepo, deltaLogger);
+            var costEstimationService = new CostEstimationService(
+                provider, apiRepo, costEstLogger, deltaService);
 
             // Run estimation behind a premium live spinner
             var costEstimate = await ConsoleRenderer.ExecuteWithStatusAsync(
@@ -83,7 +102,8 @@ class Program
                     await Task.Delay(300);
 
                     updateStatus("Sending payload to Cloudcostify API…");
-                    var result = await costEstimationService.EstimateCostAsync();
+                    var result = await costEstimationService.EstimateCostAsync(
+                        ignoreTypes, ignoreNames);
 
                     updateStatus("Receiving cost estimate…");
                     await Task.Delay(150);
@@ -91,35 +111,54 @@ class Program
                     return result;
                 });
 
-            ConsoleRenderer.RenderResults(costEstimate, cliArgs.Budget);
+            ConsoleRenderer.RenderResults(costEstimate, effectiveBudget);
 
-            // ── Budget threshold check ─────────────────────────────────────────
-            if (cliArgs.Budget.HasValue)
+            // ── Feature 1: GitHub Actions modern file-based outputs ────────────
+            var isGitHubActions = string.Equals(
+                Environment.GetEnvironmentVariable(EnvironmentVariables.GITHUB_ACTIONS),
+                "true", StringComparison.OrdinalIgnoreCase);
+
+            if (isGitHubActions && effectiveBudget.HasValue)
             {
-                var budgetExceeded = costEstimate.aggregateCosts.PerMonth > cliArgs.Budget.Value;
+                var budgetExceeded    = costEstimate.aggregateCosts.PerMonth > effectiveBudget.Value;
+                var budgetExceededStr = budgetExceeded ? "true" : "false";
 
-                if (budgetExceeded)
-                {
-                    var isGitHubActions = string.Equals(
-                        Environment.GetEnvironmentVariable(EnvironmentVariables.GITHUB_ACTIONS),
-                        "true", StringComparison.OrdinalIgnoreCase);
+                var githubEnvFile    = Environment.GetEnvironmentVariable(EnvironmentVariables.GITHUB_ENV);
+                var githubOutputFile = Environment.GetEnvironmentVariable(EnvironmentVariables.GITHUB_OUTPUT);
 
-                    if (isGitHubActions)
-                    {
-                        var githubEnvFile    = Environment.GetEnvironmentVariable(EnvironmentVariables.GITHUB_ENV);
-                        var githubOutputFile = Environment.GetEnvironmentVariable(EnvironmentVariables.GITHUB_OUTPUT);
+                if (!string.IsNullOrEmpty(githubEnvFile))
+                    await File.AppendAllTextAsync(githubEnvFile, $"BUDGET_EXCEEDED={budgetExceededStr}\n");
 
-                        if (!string.IsNullOrEmpty(githubEnvFile))
-                            await File.AppendAllTextAsync(githubEnvFile, "BUDGET_EXCEEDED=true\n");
+                if (!string.IsNullOrEmpty(githubOutputFile))
+                    await File.AppendAllTextAsync(githubOutputFile, $"budget_exceeded={budgetExceededStr}\n");
 
-                        if (!string.IsNullOrEmpty(githubOutputFile))
-                            await File.AppendAllTextAsync(githubOutputFile, "budget_exceeded=true\n");
+                logger.LogInformation(
+                    "GitHub Actions outputs written: budget_exceeded={Exceeded} " +
+                    "(${Actual:N2}/mo vs ${Limit:N2}/mo limit).",
+                    budgetExceededStr,
+                    costEstimate.aggregateCosts.PerMonth,
+                    effectiveBudget.Value);
+            }
 
-                        logger.LogInformation(
-                            "Budget exceeded (${Actual:N2}/mo > ${Limit:N2}/mo). GitHub Actions outputs written.",
-                            costEstimate.aggregateCosts.PerMonth, cliArgs.Budget.Value);
-                    }
-                }
+            // ── Feature 2: Markdown report ────────────────────────────────────
+            var markdownPath = cliArgs.MarkdownOutputPath;
+
+            // Auto-generate a report when running inside a GitHub Actions PR context
+            // and no explicit path was provided — write to a default location.
+            if (string.IsNullOrEmpty(markdownPath) && isGitHubActions)
+            {
+                var eventName = Environment.GetEnvironmentVariable(EnvironmentVariables.GITHUB_EVENT_NAME);
+                if (string.Equals(eventName, "pull_request", StringComparison.OrdinalIgnoreCase))
+                    markdownPath = "cloudcostify-report.md";
+            }
+
+            if (!string.IsNullOrEmpty(markdownPath))
+            {
+                var markdownGenerator = new MarkdownReportGenerator();
+                var markdownContent   = markdownGenerator.Generate(costEstimate, effectiveBudget);
+
+                await File.WriteAllTextAsync(markdownPath, markdownContent);
+                logger.LogInformation("Markdown report written to {Path}", markdownPath);
             }
 
             logger.LogInformation("Cost estimation completed successfully");
@@ -136,62 +175,40 @@ class Program
     private static IConfiguration BuildConfiguration()
     {
         var builder = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
+            .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
 
-        // Check if running in CI/CD pipeline
-        var isCiCd = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(EnvironmentVariables.TF_BUILD));
+        // Always add environment variables; they override JSON settings in both
+        // CI/CD (TF_BUILD, GITHUB_ACTIONS) and local development.
+        builder.AddEnvironmentVariables();
 
-        if (isCiCd)
-        {
-            // In CI/CD, read from process environment variables
-            builder.AddEnvironmentVariables();
-        }
-        else
-        {
-            // In local development, you can use user secrets or machine environment variables
-            builder.AddEnvironmentVariables();
-        }
-
-        // Override configuration with environment variables if present
         var config = builder.Build();
 
-        // Map environment variables to configuration paths
+        // Map well-known environment variables to typed configuration paths
         var inMemorySettings = new Dictionary<string, string?>();
 
         var baseUrl = Environment.GetEnvironmentVariable(EnvironmentVariables.CLOUDCOSTIFY_BASE_URL);
         if (!string.IsNullOrEmpty(baseUrl))
-        {
             inMemorySettings[$"{CostEstimationSettings.SectionName}:BaseUrl"] = baseUrl;
-        }
 
         var apiKey = Environment.GetEnvironmentVariable(EnvironmentVariables.CLOUDCOSTIFY_API_KEY);
         if (!string.IsNullOrEmpty(apiKey))
-        {
             inMemorySettings[$"{CostEstimationSettings.SectionName}:ApiKey"] = apiKey;
-        }
 
         var stackName = Environment.GetEnvironmentVariable(EnvironmentVariables.CLOUDCOSTIFY_PULUMI_PROJECT_STACK_NAME);
         if (!string.IsNullOrEmpty(stackName))
-        {
             inMemorySettings[$"{PulumiSettings.SectionName}:StackName"] = stackName;
-        }
 
         var projectPath = Environment.GetEnvironmentVariable(EnvironmentVariables.CLOUDCOSTIFY_PULUMI_PROJECT_DIRECTORY_PATH);
         if (!string.IsNullOrEmpty(projectPath))
-        {
             inMemorySettings[$"{PulumiSettings.SectionName}:ProjectDirectoryPath"] = projectPath;
-        }
 
         var projectName = Environment.GetEnvironmentVariable(EnvironmentVariables.PULUMI_PROJECT_NAME);
         if (!string.IsNullOrEmpty(projectName))
-        {
             inMemorySettings[$"{PulumiSettings.SectionName}:ProjectName"] = projectName;
-        }
 
-        // Rebuild configuration with environment variable overrides
-        if (inMemorySettings.Any())
+        if (inMemorySettings.Count > 0)
         {
             builder.AddInMemoryCollection(inMemorySettings);
             config = builder.Build();
@@ -200,11 +217,13 @@ class Program
         return config;
     }
 
-    private static (string? Provider, string? WorkingDirectory, decimal? Budget) ParseArguments(string[] args)
+    private static (string? Provider, string? WorkingDirectory, decimal? Budget, string? MarkdownOutputPath)
+        ParseArguments(string[] args)
     {
-        string? provider = null;
-        string? workingDir = null;
-        decimal? budget = null;
+        string? provider         = null;
+        string? workingDir       = null;
+        decimal? budget          = null;
+        string? markdownOutPath  = null;
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -225,6 +244,11 @@ class Program
                     budget = parsed;
                 i++;
             }
+            else if (args[i] == "--out-markdown" && i + 1 < args.Length)
+            {
+                markdownOutPath = args[i + 1];
+                i++;
+            }
             else if (args[i] == "--help" || args[i] == "-h")
             {
                 ConsoleRenderer.RenderHelp();
@@ -232,7 +256,7 @@ class Program
             }
         }
 
-        return (provider, workingDir, budget);
+        return (provider, workingDir, budget, markdownOutPath);
     }
 
     private static void ConfigureServices(IServiceCollection services, IConfiguration configuration, bool isDemoMode)
@@ -258,6 +282,7 @@ class Program
         });
 
         services.AddTransient<ProviderDetectionService>();
+        services.AddTransient<LocalProjectConfigLoader>();
 
         // Demo mode only controls the data source (file vs. real Pulumi stack).
         // The real API is always called — DemoApiRepository is never used.

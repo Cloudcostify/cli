@@ -1,0 +1,121 @@
+using System;
+using System.Text;
+using System.Threading.Tasks;
+using Pulumi;
+using Pulumi.AzureAD;
+using Pulumi.AzureNative.ContainerService;
+using Pulumi.AzureNative.ContainerService.Inputs;
+using Pulumi.AzureNative.Resources;
+using Pulumi.Random;
+using Pulumi.Tls;
+
+/// <summary>
+/// Sample Pulumi stack that provisions an AKS cluster with supporting resources.
+/// Used to generate pulumi-preview.json for Cloudcostify CLI testing.
+///
+/// To regenerate the preview snapshot:
+///   pulumi login --local
+///   pulumi stack init dev
+///   pulumi preview --json > ../pulumi-preview.json
+/// </summary>
+class MyStack : Stack
+{
+    public MyStack()
+    {
+        // Create an Azure Resource Group
+        var resourceGroup = new ResourceGroup("test-rg");
+
+        // Create an AD service principal
+        var adApp = new Application("aks", new ApplicationArgs
+        {
+            DisplayName = "aks"
+        });
+        var adSp = new ServicePrincipal("aksSp", new ServicePrincipalArgs
+        {
+            ApplicationId = adApp.ApplicationId
+        });
+
+        // Generate random password
+        var password = new RandomPassword("password", new RandomPasswordArgs
+        {
+            Length = 20,
+            Special = true
+        });
+
+        // Create the Service Principal Password
+        var adSpPassword = new ServicePrincipalPassword("aksSpPassword", new ServicePrincipalPasswordArgs
+        {
+            ServicePrincipalId = adSp.Id,
+            EndDate = "2099-01-01T00:00:00Z"
+        });
+
+        // Generate an SSH key
+        var sshKey = new PrivateKey("ssh-key", new PrivateKeyArgs
+        {
+            Algorithm = "RSA",
+            RsaBits = 4096
+        });
+
+        var cluster = new ManagedCluster("my-aks", new ManagedClusterArgs
+        {
+            ResourceGroupName = resourceGroup.Name,
+            AgentPoolProfiles =
+            {
+                new ManagedClusterAgentPoolProfileArgs
+                {
+                    Count = 2,
+                    MaxPods = 110,
+                    Mode = "System",
+                    Name = "agentpool",
+                    OsDiskSizeGB = 30,
+                    OsType = "Linux",
+                    VmSize = "Standard_B2s",
+                    EnableAutoScaling = true,
+                    MinCount = 1,
+                    MaxCount = 3,
+                },
+            },
+            DnsPrefix = "AzureNativeprovider",
+            EnableRBAC = true,
+            KubernetesVersion = "1.29.0",
+            LinuxProfile = new ContainerServiceLinuxProfileArgs
+            {
+                AdminUsername = "testuser",
+                Ssh = new ContainerServiceSshConfigurationArgs
+                {
+                    PublicKeys =
+                    {
+                        new ContainerServiceSshPublicKeyArgs
+                        {
+                            KeyData = sshKey.PublicKeyOpenssh,
+                        }
+                    }
+                }
+            },
+            NodeResourceGroup = "MC_azure-cs_my_aks",
+            ServicePrincipalProfile = new ManagedClusterServicePrincipalProfileArgs
+            {
+                ClientId = adApp.ApplicationId,
+                Secret = adSpPassword.Value
+            }
+        });
+
+        // Export the KubeConfig
+        this.KubeConfig = GetKubeConfig(resourceGroup.Name, cluster.Name);
+    }
+
+    [Output("kubeconfig")]
+    public Output<string> KubeConfig { get; set; }
+
+    private static Output<string> GetKubeConfig(Output<string> resourceGroupName, Output<string> clusterName)
+        => ListManagedClusterUserCredentials.Invoke(new ListManagedClusterUserCredentialsInvokeArgs
+        {
+            ResourceGroupName = resourceGroupName,
+            ResourceName = clusterName
+        }).Apply(credentials =>
+        {
+            var encoded = credentials.Kubeconfigs[0].Value;
+            var data = Convert.FromBase64String(encoded);
+            return Encoding.UTF8.GetString(data);
+        });
+}

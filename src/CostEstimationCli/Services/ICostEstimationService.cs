@@ -8,9 +8,18 @@ namespace CostEstimationCli.Services;
 public interface ICostEstimationService
 {
     /// <summary>
-    /// Executes the cost estimation process end-to-end
+    /// Executes the cost estimation process end-to-end.
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Cost estimate response model</returns>
-    Task<CostEstimateResponseModel> EstimateCostAsync(CancellationToken cancellationToken = default);
+    /// <param name="ignoreResourceTypes">
+    /// Optional list of fully-qualified Pulumi resource types to exclude from
+    /// the payload (e.g. <c>azure-native:resources:ResourceGroup</c>).
+    /// </param>
+    /// <param name="ignoreResourceNames">
+    /// Optional list of logical resource names (URN last segment) to exclude.
+    /// </param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task<CostEstimateResponseModel> EstimateCostAsync(
+        IReadOnlyList<string>? ignoreResourceTypes = null,
+        IReadOnlyList<string>? ignoreResourceNames = null,
+        CancellationToken cancellationToken = default);
 }

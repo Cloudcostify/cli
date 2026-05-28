@@ -111,7 +111,7 @@ public static class ConsoleRenderer
 
     public static void RenderResults(CostEstimateResponseModel estimate, decimal? budget = null)
     {
-        // Begynd at optage terminal-outputtet, så det kan gemmes som HTML til CI/CD pull requests
+        // Begin recording terminal output for HTML CI/CD artefact export
         AnsiConsole.Record();
 
         AnsiConsole.WriteLine();
@@ -121,7 +121,7 @@ public static class ConsoleRenderer
                 .LeftJustified());
 
         AnsiConsole.WriteLine();
-        RenderCostSummary(estimate.aggregateCosts, budget);
+        RenderCostSummary(estimate.aggregateCosts, budget, estimate.Delta);
 
         if (estimate.cloudResources?.Any() == true)
         {
@@ -160,9 +160,43 @@ public static class ConsoleRenderer
         }
     }
 
-    // ── Cost Summary & Delta Architecture ──────────────────────────────────────
+    // ── Delta Summary ──────────────────────────────────────────────────────────
 
-    private static void RenderCostSummary(AggregateCost costs, decimal? budget = null)
+    private static void RenderDeltaSummary(CostDelta delta)
+    {
+        string netColor;
+        if (delta.NetMonthly > 0)       netColor = CyberOrange;
+        else if (delta.NetMonthly < 0)  netColor = "green";
+        else                            netColor = LightGrey;
+
+        string arrowIcon;
+        if (SupportsUnicode) arrowIcon = delta.NetMonthly >= 0 ? "▲" : "▼";
+        else                 arrowIcon = delta.NetMonthly >= 0 ? "+" : "-";
+
+        var sign         = delta.NetMonthly >= 0 ? "+" : "";
+        var deltaIcon    = SupportsUnicode ? "Δ" : "~";
+
+        AnsiConsole.MarkupLine(
+            $" [{LightGrey}]{deltaIcon} Net Change[/]   " +
+            $"[bold {netColor}]{arrowIcon} {sign}{FormatCurrencyPlain(delta.NetMonthly)} / month[/]");
+
+        // Op breakdown
+        var parts = new List<string>();
+        if (delta.CreatedCount   > 0) parts.Add($"[{NeonCyan}]{delta.CreatedCount} created[/]");
+        if (delta.DeletedCount   > 0) parts.Add($"[green]{delta.DeletedCount} deleted[/]");
+        if (delta.UpdatedCount   > 0) parts.Add($"[#ffd700]{delta.UpdatedCount} updated[/]");
+        if (delta.UnchangedCount > 0) parts.Add($"[{DarkGrey}]{delta.UnchangedCount} unchanged[/]");
+
+        if (parts.Count > 0)
+        {
+            AnsiConsole.MarkupLine(
+                $"   [{DarkGrey}]({string.Join($"[{DarkGrey}] · [/]", parts)})[/]");
+        }
+    }
+
+    // ── Resource Hierarchy Tree & Hyperlinks ───────────────────────────────────
+
+    private static void RenderCostSummary(AggregateCost costs, decimal? budget = null, CostDelta? delta = null)
     {
         var table = new Table()
             .Border(TableBorder.MinimalHeavyHead)
@@ -170,21 +204,33 @@ public static class ConsoleRenderer
 
         table.AddColumn("Period");
         table.AddColumn(new TableColumn("Amount").RightAligned());
-        table.AddColumn(new TableColumn("Delta (Diff)").RightAligned()); // Ny Diff-kolonne til Pulumi Previews
+        table.AddColumn(new TableColumn("Net Change").RightAligned());
         table.AddColumn("Status");
 
-        // Her kan du binde dine reelle beregnede ændringer (f.eks. fra Pulumi diffs)
-        // Vi sender nogle mock-tal med her for at illustrere det visuelle udtryk
-        AddCostRow(table, "Per Hour", costs.PerHour, 0.12m, false);
-        AddCostRow(table, "Per Day", costs.PerDay, 2.88m, false);
-        AddCostRow(table, "Per Week", costs.PerWeek, 20.16m, false);
-        AddCostRow(table, "Per Month", costs.PerMonth, 86.40m, true);
-        AddCostRow(table, "Per Year", costs.PerYear, 1036.80m, false);
+        // Derive per-period deltas from the monthly net change
+        decimal? hourlyDelta  = delta?.NetMonthly is not 0 ? delta!.NetMonthly / 730m  : null;
+        decimal? dailyDelta   = delta?.NetMonthly is not 0 ? delta!.NetMonthly / 30m   : null;
+        decimal? weeklyDelta  = delta?.NetMonthly is not 0 ? delta!.NetMonthly / 4.33m : null;
+        decimal? monthlyDelta = delta?.NetMonthly is not 0 ? delta!.NetMonthly         : null;
+        decimal? yearlyDelta  = delta?.NetMonthly is not 0 ? delta!.NetMonthly * 12m   : null;
+
+        AddCostRow(table, "Per Hour",  costs.PerHour,  hourlyDelta,  false);
+        AddCostRow(table, "Per Day",   costs.PerDay,   dailyDelta,   false);
+        AddCostRow(table, "Per Week",  costs.PerWeek,  weeklyDelta,  false);
+        AddCostRow(table, "Per Month", costs.PerMonth, monthlyDelta, true);
+        AddCostRow(table, "Per Year",  costs.PerYear,  yearlyDelta,  false);
 
         AnsiConsole.Write(table);
         AnsiConsole.WriteLine();
 
         RenderBudgetGuard(costs.PerMonth, budget);
+
+        // ── Delta summary ─────────────────────────────────────────────────────
+        if (delta is not null)
+        {
+            AnsiConsole.WriteLine();
+            RenderDeltaSummary(delta);
+        }
     }
 
     private static void AddCostRow(Table table, string label, decimal amount, decimal? delta, bool isTarget)
@@ -556,6 +602,7 @@ public static class ConsoleRenderer
         table.AddRow(new Markup($"[{NeonCyan}]  --provider[/] [dim]<name>[/]"),             new Markup($"[{LightGrey}]IaC provider:[/]  [white]pulumi[/]  [white]bicep[/]  [white]cdk[/]"));
         table.AddRow(new Markup($"[{NeonCyan}]  --directory[/] [dim]<path>[/]"),            new Markup($"[{LightGrey}]Working directory[/]  [dim](default: current)[/]"));
         table.AddRow(new Markup($"[{NeonCyan}]  --budget[/] [dim]<usd>[/]"),               new Markup($"[{LightGrey}]Maximum monthly cost in USD. Sets [/][white]BUDGET_EXCEEDED[/][{LightGrey}] in GitHub Actions when exceeded.[/]"));
+        table.AddRow(new Markup($"[{NeonCyan}]  --out-markdown[/] [dim]<path>[/]"),         new Markup($"[{LightGrey}]Write a Markdown summary report to[/] [white]<path>[/] [dim](e.g. cost-report.md)[/]"));
         table.AddRow(new Markup($"[{NeonCyan}]  --help[/][dim],[/] [{NeonCyan}]-h[/]"),     new Markup($"[{LightGrey}]Show this help message[/]"));
         table.AddEmptyRow();
 

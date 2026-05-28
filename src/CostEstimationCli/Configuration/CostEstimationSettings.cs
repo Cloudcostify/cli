@@ -53,7 +53,8 @@ public static class EnvironmentVariables
     public const string PULUMI_PROJECT_NAME = "PulumiProjectName";
 
     // GitHub Actions integration
-    public const string GITHUB_ACTIONS  = "GITHUB_ACTIONS";
-    public const string GITHUB_ENV      = "GITHUB_ENV";
-    public const string GITHUB_OUTPUT   = "GITHUB_OUTPUT";
+    public const string GITHUB_ACTIONS     = "GITHUB_ACTIONS";
+    public const string GITHUB_ENV         = "GITHUB_ENV";
+    public const string GITHUB_OUTPUT      = "GITHUB_OUTPUT";
+    public const string GITHUB_EVENT_NAME  = "GITHUB_EVENT_NAME";
 }
