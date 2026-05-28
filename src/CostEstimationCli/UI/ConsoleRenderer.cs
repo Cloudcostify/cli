@@ -285,7 +285,7 @@ public static class ConsoleRenderer
 
         return op switch
         {
-            "create" => $"  [bold {CyberOrange}]+{FormatCurrencyPlain(monthlyAmount)}/mo[/]",
+            "create" => $"  [bold red]+{FormatCurrencyPlain(monthlyAmount)}/mo[/]",
             "delete" => $"  [bold green]-{FormatCurrencyPlain(monthlyAmount)}/mo[/]",
             "update" => $"  [bold #ffd700]~[/]",
             _        => "",
@@ -301,8 +301,8 @@ public static class ConsoleRenderer
 
         return op switch
         {
-            "create" => "[bold green][[+]][/] ",
-            "delete" => "[bold red][[-]][/] ",
+            "create" => "[bold red][[+]][/] ",
+            "delete" => "[bold green][[-]][/] ",
             "update" => "[bold #ffd700][[~]][/] ",
             _        => "",
         };
@@ -408,7 +408,7 @@ public static class ConsoleRenderer
 
     private static void AddClusterNode(TreeNode parent, AksManagedCluster cluster, CostDelta? delta)
     {
-        var clusterIcon = SupportsUnicode ? "🖥️ " : "";
+        var clusterIcon = "";
 
         // NATIVE HYPERLINK: Gør klyngen klikbar direkte til Azure Portalen i understøttede terminaler
         var portalUrl  = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(cluster.name)}";
@@ -481,7 +481,7 @@ public static class ConsoleRenderer
 
     private static void AddVirtualMachineScaleSetNode(TreeNode parent, VirtualMachineScaleSet vmss, CostDelta? delta)
     {
-        var vmssIcon = SupportsUnicode ? "🖥️ " : "";
+        var vmssIcon = "";
 
         var portalUrl  = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(vmss.name)}";
         var opPrefix   = BuildOpPrefix(vmss.name, delta);

@@ -75,9 +75,16 @@ public class DeltaCalculationService
                     continue;
                 }
 
-                // Track op per resource name for per-node badge rendering
+                // Track op per resource name for per-node badge rendering.
+                // Index by BOTH the logical URN name and the physical resource name from
+                // newState.inputs.resourceName so the renderer can find a match whichever
+                // name the API returns in the cost estimate response.
                 if (!string.IsNullOrEmpty(resourceName) && !string.IsNullOrEmpty(op))
                     resourceOps[resourceName] = op;
+
+                var physicalName = ExtractPhysicalResourceName(step);
+                if (!string.IsNullOrEmpty(physicalName) && !string.IsNullOrEmpty(op))
+                    resourceOps[physicalName] = op;
 
                 switch (op)
                 {
@@ -139,6 +146,17 @@ public class DeltaCalculationService
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Reads the physical Azure resource name from a step's <c>newState.inputs.resourceName</c>.
+    /// This is the name the API uses in its response, which may differ from the URN logical name.
+    /// </summary>
+    private static string? ExtractPhysicalResourceName(JsonElement step)
+    {
+        if (!step.TryGetProperty("newState", out var newState)) return null;
+        if (!newState.TryGetProperty("inputs", out var inputs)) return null;
+        return inputs.TryGetProperty("resourceName", out var el) ? el.GetString() : null;
+    }
 
     private static bool IsPulumiMetaResource(string? urn) =>
         !string.IsNullOrEmpty(urn) &&
