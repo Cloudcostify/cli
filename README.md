@@ -260,8 +260,7 @@ If you encounter issues or have questions:
 
 1. Check the [documentation](https://cloudcostify.io/)
 2. Search [existing issues](https://github.com/cloudcostify/cli/issues)
-3. Join our [Slack community](https://cloudcostify.slack.com)
-4. Create a [new issue](https://github.com/cloudcostify/cli/issues/new/choose)
+3. Create a [new issue](https://github.com/cloudcostify/cli/issues/new/choose)
 
 ---
 
