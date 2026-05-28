@@ -1,0 +1,34 @@
+.github/workflows/.actrc
+  s_81115366de6908::t_6df75db2ea4d65 2
+  s_81115366de6908::t_36b0d49fa167b1 1
+src/CostEstimationCli/appsettings.json
+  h_aa722e8ed10195 3
+.github/workflows/build-and-test.yml
+  s_81115366de6908::t_ff6414baeaf2e7 18
+  s_81115366de6908::t_2f69c20e80cc93 89
+  s_81115366de6908::t_c0e58908914295 93
+  s_81115366de6908::t_0799f697a54627 94
+  s_81115366de6908::t_22cfe6f58988df 45,52,62
+  h_aa722e8ed10195 72,90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "cfdfd556957c1402d04ece23746d0252b86db634",
+  "prompts": {},
+  "humans": {
+    "h_aa722e8ed10195": {
+      "author": "Casper Rubæk <9870550+Trubador@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_81115366de6908": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "0578f29e-961f-456a-a041-4799278fcb62",
+        "model": "gpt-5-mini"
+      },
+      "human_author": "Casper Rubæk <9870550+Trubador@users.noreply.github.com>"
+    }
+  }
+}
