@@ -1,0 +1,31 @@
+src/CostEstimationCli/Models/CostEstimateResponseModel.cs
+  s_cc153e06b685e0::t_07e4058183f5ae 28,37-40,53,77-169
+src/CostEstimationCli/Repositories/DemoApiRepository.cs
+  s_cc153e06b685e0::t_90ed227888a63e 65
+  s_cc153e06b685e0::t_e532fb7f50e1d4 1-64,66-78
+samples/pulumi-preview.json
+  s_cc153e06b685e0::t_744652d50a6828 55,73-232,237
+src/CostEstimationCli/UI/ConsoleRenderer.cs
+  s_cc153e06b685e0::t_af1ca951f7b6c8 222-245
+  s_cc153e06b685e0::t_0b008d9840d7de 284-383
+src/CostEstimationCli/Program.cs
+  s_cc153e06b685e0::t_1dfbde56979a8a 22-24,26,201,224-232
+samples/demo-response.json
+  s_cc153e06b685e0::t_d44b3596ad52ee 1-122
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "305b168c0d24e8ec1d115ca9c4440c349f429256",
+  "prompts": {},
+  "sessions": {
+    "s_cc153e06b685e0": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "16ff10a8-667f-41f3-ba9e-8dc0d387bedd",
+        "model": "gpt-5-mini"
+      },
+      "human_author": "Casper Rubæk <9870550+Trubador@users.noreply.github.com>"
+    }
+  }
+}
