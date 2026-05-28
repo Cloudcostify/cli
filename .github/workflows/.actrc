@@ -1,0 +1,2 @@
+-C ../..
+-W .github/workflows/build-and-test.yml

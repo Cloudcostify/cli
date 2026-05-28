@@ -15,7 +15,7 @@ env:
 jobs:
   build:
     name: Build and Test
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
@@ -42,14 +42,14 @@ jobs:
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
-      if: always()
+      if: always() && !env.ACT
       with:
         name: test-results
         path: ./TestResults/*.trx
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4
-      if: success()
+      if: success() && !env.ACT
       with:
         files: '**/coverage.cobertura.xml'
         flags: unittests
@@ -59,7 +59,7 @@ jobs:
 
     - name: Publish build artifacts
       uses: actions/upload-artifact@v4
-      if: success()
+      if: success() && !env.ACT
       with:
         name: build-artifacts
         path: |
@@ -69,7 +69,7 @@ jobs:
 
   integration-test:
     name: Integration Test
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: build
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
 
@@ -86,10 +86,12 @@ jobs:
       run: dotnet build src/CostEstimationCli/CostEstimationCli.csproj --configuration Release
 
     - name: Run CLI (dry run)
-      run: dotnet run --project src/CostEstimationCli/CostEstimationCli.csproj --configuration Release
+      working-directory: src/CostEstimationCli
+      run: dotnet run --budget 500 --configuration Release
       continue-on-error: true
       env:
-        CLOUDCOSTIFY_BASE_URL: ${{ secrets.CLOUDCOSTIFY_BASE_URL }}
+        DOTNET_ENVIRONMENT: Production
+        CLOUDCOSTIFY_BASE_URL: ${{ secrets.CLOUDCOSTIFY_BASE_URL || 'https://api.cloudcostify.io/api/cost-estimates' }}
         CLOUDCOSTIFY_API_KEY: ${{ secrets.CLOUDCOSTIFY_API_KEY }}
         CLOUDCOSTIFY_PULUMI_PROJECT_STACK_NAME: ${{ secrets.CLOUDCOSTIFY_PULUMI_PROJECT_STACK_NAME }}
         CLOUDCOSTIFY_PULUMI_PROJECT_DIRECTORY_PATH: ${{ secrets.CLOUDCOSTIFY_PULUMI_PROJECT_DIRECTORY_PATH }}
