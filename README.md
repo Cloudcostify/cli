@@ -23,13 +23,16 @@ This tool ensures consistent cloud infrastructure cost estimation in your releas
 
 ### Azure
 - AKS Managed Clusters
-- Virtual Machine SKUs
-- Node Pools
+  - Node Pools
+- Virtual Machine
+  - Virtual Machine Scale-Set
+- SQL Database
+- Managed SQL Database
 
 ### AWS
-- Limited support (expanding)
+- Currently no support (coming)
 
-More resources and providers coming soon!
+More resources and providers coming soon - let us know which you need
 
 ## Installation
 
