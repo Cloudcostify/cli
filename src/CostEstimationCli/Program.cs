@@ -19,8 +19,11 @@ class Program
 
             var configuration = BuildConfiguration();
 
+            var pulumiSettings = configuration.GetSection(PulumiSettings.SectionName);
+            var isDemoMode = string.Equals(pulumiSettings["DemoMode"], "true", StringComparison.OrdinalIgnoreCase);
+
             var services = new ServiceCollection();
-            ConfigureServices(services, configuration);
+            ConfigureServices(services, configuration, isDemoMode);
             var serviceProvider = services.BuildServiceProvider();
 
             var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
@@ -28,9 +31,6 @@ class Program
             // Detect or select provider (before showing UI, so we can pass it to RenderHeader)
             var detectionService = serviceProvider.GetRequiredService<ProviderDetectionService>();
             IInfrastructureProvider? provider;
-
-            var pulumiSettings = configuration.GetSection(PulumiSettings.SectionName);
-            var isDemoMode = string.Equals(pulumiSettings["DemoMode"], "true", StringComparison.OrdinalIgnoreCase);
 
             if (cliArgs.Provider != null)
             {
@@ -198,7 +198,7 @@ class Program
         return (provider, workingDir);
     }
 
-    private static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
+    private static void ConfigureServices(IServiceCollection services, IConfiguration configuration, bool isDemoMode)
     {
         services.AddLogging(builder =>
         {
@@ -208,8 +208,6 @@ class Program
 
         services.Configure<CostEstimationSettings>(configuration.GetSection(CostEstimationSettings.SectionName));
         services.Configure<PulumiSettings>(configuration.GetSection(PulumiSettings.SectionName));
-
-        services.AddHttpClient<IApiRepository, ApiRepository>();
 
         services.AddTransient<PulumiProvider>();
         services.AddTransient<BicepProvider>();
@@ -223,6 +221,14 @@ class Program
         });
 
         services.AddTransient<ProviderDetectionService>();
-        services.AddTransient<IApiRepository, ApiRepository>();
+
+        if (isDemoMode)
+        {
+            services.AddTransient<IApiRepository, DemoApiRepository>();
+        }
+        else
+        {
+            services.AddHttpClient<IApiRepository, ApiRepository>();
+        }
     }
 }

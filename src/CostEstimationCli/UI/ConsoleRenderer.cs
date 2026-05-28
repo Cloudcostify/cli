@@ -219,6 +219,30 @@ public static class ConsoleRenderer
                 RenderClusterTree(estimate.cloudProvider, cluster);
                 AnsiConsole.WriteLine();
             }
+
+            foreach (var vm in resource.virtualMachines ?? [])
+            {
+                RenderVirtualMachineTree(estimate.cloudProvider, vm);
+                AnsiConsole.WriteLine();
+            }
+
+            foreach (var vmss in resource.virtualMachineScaleSets ?? [])
+            {
+                RenderVirtualMachineScaleSetTree(estimate.cloudProvider, vmss);
+                AnsiConsole.WriteLine();
+            }
+
+            foreach (var db in resource.sqlDatabases ?? [])
+            {
+                RenderSqlDatabaseTree(estimate.cloudProvider, db);
+                AnsiConsole.WriteLine();
+            }
+
+            foreach (var mi in resource.sqlManagedInstances ?? [])
+            {
+                RenderSqlManagedInstanceTree(estimate.cloudProvider, mi);
+                AnsiConsole.WriteLine();
+            }
         }
     }
 
@@ -257,7 +281,106 @@ public static class ConsoleRenderer
         var subtotal = pool.nodeCount * pool.virtualMachineSku.price;
         poolNode.AddNode(
             $"[{LightGrey}]Base Price:[/] [{NeonCyan}]{FormatCurrencyPlain(pool.virtualMachineSku.price)}[/] [{DarkGrey}]/{Markup.Escape(pool.virtualMachineSku.priceUnit)}[/] " +
-            $"[{DarkGrey}]([/][{CyberOrange}]{FormatCurrencyPlain(subtotal)}[/][{DarkGrey}]/mo total)[/]");
+            $"[{DarkGrey}]([/][{CyberOrange}]{FormatCurrencyPlain(subtotal)}[/][{DarkGrey}]/hr total)[/]");
+    }
+
+    private static void RenderVirtualMachineTree(string cloudProvider, VirtualMachine vm)
+    {
+        var providerColor = GetProviderColor(cloudProvider);
+        var providerIcon = SupportsUnicode ? "▰" : "■";
+        var vmIcon = SupportsUnicode ? "💻 " : "";
+
+        var portalUrl = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(vm.name)}";
+        var tree = new Tree($"[bold {providerColor}]{providerIcon} {Markup.Escape(cloudProvider)}[/] [{LightGrey}]({Markup.Escape(vm.location)})[/]")
+            .Style(new Style(foreground: Color.Grey30));
+
+        var vmNode = tree.AddNode(
+            $"{vmIcon}[white]Virtual Machine:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(vm.name)}[/][/]");
+
+        var skuUrl = "https://azure.microsoft.com/en-us/pricing/details/virtual-machines/series/";
+        vmNode.AddNode($"[{LightGrey}]VM SKU:[/]   [link={skuUrl}][{NeonCyan}]{Markup.Escape(vm.virtualMachineSku.sku)}[/][/]");
+        vmNode.AddNode($"[{LightGrey}]OS:[/]       [{CyberOrange}]{Markup.Escape(vm.operatingSystem)}[/]");
+        vmNode.AddNode($"[{LightGrey}]Priority:[/] [{LightGrey}]{Markup.Escape(vm.priority)}[/]");
+        vmNode.AddNode(
+            $"[{LightGrey}]Price:[/]    [{NeonCyan}]{FormatCurrencyPlain(vm.virtualMachineSku.price)}[/] [{DarkGrey}]/{Markup.Escape(vm.virtualMachineSku.priceUnit)}[/] " +
+            $"[{DarkGrey}]([/][{CyberOrange}]{FormatCurrencyPlain(vm.aggregateVirtualMachineCosts.PerMonth)}[/][{DarkGrey}]/mo)[/]");
+
+        AnsiConsole.Write(tree);
+    }
+
+    private static void RenderVirtualMachineScaleSetTree(string cloudProvider, VirtualMachineScaleSet vmss)
+    {
+        var providerColor = GetProviderColor(cloudProvider);
+        var providerIcon = SupportsUnicode ? "▰" : "■";
+        var vmssIcon = SupportsUnicode ? "🖥️ " : "";
+
+        var portalUrl = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(vmss.name)}";
+        var tree = new Tree($"[bold {providerColor}]{providerIcon} {Markup.Escape(cloudProvider)}[/] [{LightGrey}]({Markup.Escape(vmss.location)})[/]")
+            .Style(new Style(foreground: Color.Grey30));
+
+        var vmssNode = tree.AddNode(
+            $"{vmssIcon}[white]VM Scale Set:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(vmss.name)}[/][/]");
+
+        var skuUrl = "https://azure.microsoft.com/en-us/pricing/details/virtual-machines/series/";
+        vmssNode.AddNode($"[{LightGrey}]VM SKU:[/]     [link={skuUrl}][{NeonCyan}]{Markup.Escape(vmss.virtualMachineSku.sku)}[/][/]");
+        vmssNode.AddNode($"[{LightGrey}]Instances:[/]  [{CyberOrange}]{vmss.instanceCount}[/]");
+        vmssNode.AddNode($"[{LightGrey}]OS:[/]         [{CyberOrange}]{Markup.Escape(vmss.operatingSystem)}[/]");
+
+        var perInstance = vmss.virtualMachineSku.price;
+        var total = perInstance * vmss.instanceCount;
+        vmssNode.AddNode(
+            $"[{LightGrey}]Base Price:[/] [{NeonCyan}]{FormatCurrencyPlain(perInstance)}[/] [{DarkGrey}]/{Markup.Escape(vmss.virtualMachineSku.priceUnit)}[/] " +
+            $"[{DarkGrey}]([/][{CyberOrange}]{FormatCurrencyPlain(vmss.aggregateVirtualMachineScaleSetCosts.PerMonth)}[/][{DarkGrey}]/mo total)[/]");
+
+        AnsiConsole.Write(tree);
+    }
+
+    private static void RenderSqlDatabaseTree(string cloudProvider, SqlDatabase db)
+    {
+        var providerColor = GetProviderColor(cloudProvider);
+        var providerIcon = SupportsUnicode ? "▰" : "■";
+        var dbIcon = SupportsUnicode ? "🗄️ " : "";
+
+        var portalUrl = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(db.name)}";
+        var tree = new Tree($"[bold {providerColor}]{providerIcon} {Markup.Escape(cloudProvider)}[/] [{LightGrey}]({Markup.Escape(db.location)})[/]")
+            .Style(new Style(foreground: Color.Grey30));
+
+        var dbNode = tree.AddNode(
+            $"{dbIcon}[white]SQL Database:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(db.name)}[/][/]");
+
+        dbNode.AddNode($"[{LightGrey}]Server:[/]   [{LightGrey}]{Markup.Escape(db.serverName)}[/]");
+
+        var skuUrl = "https://azure.microsoft.com/en-us/pricing/details/azure-sql-database/single/";
+        dbNode.AddNode($"[{LightGrey}]SKU:[/]      [link={skuUrl}][{NeonCyan}]{Markup.Escape(db.sqlDatabaseSku.sku)}[/][/] [{DarkGrey}]({Markup.Escape(db.sqlDatabaseSku.tier)})[/]");
+        dbNode.AddNode(
+            $"[{LightGrey}]Price:[/]    [{NeonCyan}]{FormatCurrencyPlain(db.sqlDatabaseSku.price)}[/] [{DarkGrey}]/{Markup.Escape(db.sqlDatabaseSku.priceUnit)}[/] " +
+            $"[{DarkGrey}]([/][{CyberOrange}]{FormatCurrencyPlain(db.aggregateSqlDatabaseCosts.PerMonth)}[/][{DarkGrey}]/mo)[/]");
+
+        AnsiConsole.Write(tree);
+    }
+
+    private static void RenderSqlManagedInstanceTree(string cloudProvider, SqlManagedInstance mi)
+    {
+        var providerColor = GetProviderColor(cloudProvider);
+        var providerIcon = SupportsUnicode ? "▰" : "■";
+        var miIcon = SupportsUnicode ? "🗄️ " : "";
+
+        var portalUrl = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(mi.name)}";
+        var tree = new Tree($"[bold {providerColor}]{providerIcon} {Markup.Escape(cloudProvider)}[/] [{LightGrey}]({Markup.Escape(mi.location)})[/]")
+            .Style(new Style(foreground: Color.Grey30));
+
+        var miNode = tree.AddNode(
+            $"{miIcon}[white]SQL Managed Instance:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(mi.name)}[/][/]");
+
+        var skuUrl = "https://azure.microsoft.com/en-us/pricing/details/azure-sql-managed-instance/single/";
+        miNode.AddNode($"[{LightGrey}]SKU:[/]          [link={skuUrl}][{NeonCyan}]{Markup.Escape(mi.sqlManagedInstanceSku.sku)}[/][/] [{DarkGrey}]({Markup.Escape(mi.sqlManagedInstanceSku.tier)})[/]");
+        miNode.AddNode($"[{LightGrey}]vCores:[/]       [{CyberOrange}]{mi.sqlManagedInstanceSku.vCores}[/]");
+        miNode.AddNode($"[{LightGrey}]Storage:[/]      [{LightGrey}]{mi.storageSizeInGB} GB[/]");
+        miNode.AddNode($"[{LightGrey}]License:[/]      [{LightGrey}]{Markup.Escape(mi.licenseType)}[/]");
+        miNode.AddNode(
+            $"[{LightGrey}]Total Cost:[/]  [{CyberOrange}]{FormatCurrencyPlain(mi.aggregateSqlManagedInstanceCosts.PerMonth)}[/][{DarkGrey}]/mo[/]");
+
+        AnsiConsole.Write(tree);
     }
 
     // ── Budget Guard ───────────────────────────────────────────────────────────

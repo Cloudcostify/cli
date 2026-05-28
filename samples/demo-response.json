@@ -1,0 +1,122 @@
+{
+  "currency": "USD",
+  "cloudProvider": "Azure",
+  "aggregateCosts": {
+    "perMilliSecond": 0.00000021,
+    "perSecond": 0.00021,
+    "perMinute": 0.01274,
+    "perHour": 0.7643,
+    "perDay": 18.3432,
+    "perWeek": 128.4024,
+    "perMonth": 557.9364,
+    "perQuarter": 1673.8092,
+    "perHalfYear": 3347.6184,
+    "perYear": 6695.2368
+  },
+  "cloudResources": [
+    {
+      "aksManagedClusters": [
+        {
+          "name": "sandbox-aks-cfy",
+          "location": "WestEurope",
+          "nodePools": [
+            {
+              "name": "agentpool",
+              "type": "Agent",
+              "nodeCount": 3,
+              "os": "Linux",
+              "virtualMachineSku": {
+                "sku": "Standard_B2s",
+                "price": 0.0416,
+                "priceUnit": "PerHour",
+                "os": "Linux"
+              },
+              "aggregateNodePoolCosts": {
+                "perHour": 0.1248,
+                "perDay": 2.9952,
+                "perWeek": 20.9664,
+                "perMonth": 91.1040,
+                "perYear": 1093.2480
+              }
+            }
+          ],
+          "aggregateAKSClusterCosts": {
+            "perHour": 0.1248,
+            "perDay": 2.9952,
+            "perWeek": 20.9664,
+            "perMonth": 91.1040,
+            "perYear": 1093.2480
+          }
+        }
+      ],
+      "virtualMachines": [
+        {
+          "name": "sandbox-vm",
+          "location": "WestEurope",
+          "resourceGroupName": "test-rgc1b5caef",
+          "operatingSystem": "Linux",
+          "priority": "Regular",
+          "virtualMachineSku": {
+            "sku": "Standard_D2s_v3",
+            "price": 0.0975,
+            "priceUnit": "PerHour",
+            "os": "Linux"
+          },
+          "aggregateVirtualMachineCosts": {
+            "perHour": 0.0975,
+            "perDay": 2.3400,
+            "perWeek": 16.3800,
+            "perMonth": 71.1750,
+            "perYear": 854.1000
+          }
+        }
+      ],
+      "virtualMachineScaleSets": [
+        {
+          "name": "sandbox-vmss",
+          "location": "WestEurope",
+          "resourceGroupName": "test-rgc1b5caef",
+          "instanceCount": 3,
+          "operatingSystem": "Linux",
+          "priority": "Regular",
+          "virtualMachineSku": {
+            "sku": "Standard_D2s_v3",
+            "price": 0.0975,
+            "priceUnit": "PerHour",
+            "os": "Linux"
+          },
+          "aggregateVirtualMachineScaleSetCosts": {
+            "perHour": 0.2925,
+            "perDay": 7.0200,
+            "perWeek": 49.1400,
+            "perMonth": 213.5250,
+            "perYear": 2562.3000
+          }
+        }
+      ],
+      "sqlDatabases": [
+        {
+          "name": "sandbox-sql-db",
+          "location": "WestEurope",
+          "resourceGroupName": "test-rgc1b5caef",
+          "serverName": "sandbox-sql-server",
+          "sqlDatabaseSku": {
+            "sku": "S3",
+            "tier": "Standard",
+            "capacity": 100,
+            "price": 6.1440,
+            "priceUnit": "PerDay"
+          },
+          "aggregateSqlDatabaseCosts": {
+            "perHour": 0.2560,
+            "perDay": 6.1440,
+            "perWeek": 43.0080,
+            "perMonth": 184.3200,
+            "perYear": 2211.8400
+          }
+        }
+      ],
+      "sqlManagedInstances": []
+    }
+  ]
+}

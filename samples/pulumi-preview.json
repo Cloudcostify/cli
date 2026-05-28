@@ -52,7 +52,7 @@
           "dnsPrefix": "sandbox-aks-cfy",
           "kubernetesVersion": "1.21.2",
           "location": "WestEurope",
-          "resourceGroupName": "04da6b54-80e4-46f7-96ec-b56ff0331ba9",
+          "resourceGroupName": "test-rgc1b5caef",
           "resourceName": "sandbox-aks-cfy98cf18ef"
         },
         "parent": "urn:pulumi:dev::PulumiSandbox::pulumi:pulumi:Stack::PulumiSandbox-dev",
@@ -70,10 +70,170 @@
         }
       },
       "detailedDiff": null
+    },
+    {
+      "op": "create",
+      "urn": "urn:pulumi:dev::PulumiSandbox::azure-native:compute:VirtualMachine::sandbox-vm",
+      "provider": "urn:pulumi:dev::PulumiSandbox::pulumi:providers:azure-native::default_1_97_0::04da6b54-80e4-46f7-96ec-b56ff0331ba9",
+      "newState": {
+        "urn": "urn:pulumi:dev::PulumiSandbox::azure-native:compute:VirtualMachine::sandbox-vm",
+        "custom": true,
+        "type": "azure-native:compute:VirtualMachine",
+        "inputs": {
+          "__createBeforeDelete": true,
+          "hardwareProfile": {
+            "vmSize": "Standard_D2s_v3"
+          },
+          "location": "WestEurope",
+          "osProfile": {
+            "adminUsername": "adminuser",
+            "computerName": "sandbox-vm",
+            "linuxConfiguration": {
+              "disablePasswordAuthentication": true
+            }
+          },
+          "resourceGroupName": "test-rgc1b5caef",
+          "storageProfile": {
+            "imageReference": {
+              "offer": "UbuntuServer",
+              "publisher": "Canonical",
+              "sku": "20.04-LTS",
+              "version": "latest"
+            },
+            "osDisk": {
+              "createOption": "FromImage",
+              "managedDisk": {
+                "storageAccountType": "Premium_LRS"
+              }
+            }
+          },
+          "vmName": "sandbox-vm"
+        },
+        "parent": "urn:pulumi:dev::PulumiSandbox::pulumi:pulumi:Stack::PulumiSandbox-dev",
+        "dependencies": [
+          "urn:pulumi:dev::PulumiSandbox::azure-native:resources:ResourceGroup::test-rg"
+        ],
+        "provider": "urn:pulumi:dev::PulumiSandbox::pulumi:providers:azure-native::default_1_97_0::04da6b54-80e4-46f7-96ec-b56ff0331ba9",
+        "propertyDependencies": {
+          "resourceGroupName": [
+            "urn:pulumi:dev::PulumiSandbox::azure-native:resources:ResourceGroup::test-rg"
+          ]
+        }
+      },
+      "detailedDiff": null
+    },
+    {
+      "op": "create",
+      "urn": "urn:pulumi:dev::PulumiSandbox::azure-native:compute:VirtualMachineScaleSet::sandbox-vmss",
+      "provider": "urn:pulumi:dev::PulumiSandbox::pulumi:providers:azure-native::default_1_97_0::04da6b54-80e4-46f7-96ec-b56ff0331ba9",
+      "newState": {
+        "urn": "urn:pulumi:dev::PulumiSandbox::azure-native:compute:VirtualMachineScaleSet::sandbox-vmss",
+        "custom": true,
+        "type": "azure-native:compute:VirtualMachineScaleSet",
+        "inputs": {
+          "__createBeforeDelete": true,
+          "location": "WestEurope",
+          "resourceGroupName": "test-rgc1b5caef",
+          "sku": {
+            "capacity": 3,
+            "name": "Standard_D2s_v3",
+            "tier": "Standard"
+          },
+          "upgradePolicy": {
+            "mode": "Manual"
+          },
+          "virtualMachineProfile": {
+            "osProfile": {
+              "adminUsername": "adminuser",
+              "computerNamePrefix": "sandbox-vmss",
+              "linuxConfiguration": {
+                "disablePasswordAuthentication": true
+              }
+            },
+            "storageProfile": {
+              "imageReference": {
+                "offer": "UbuntuServer",
+                "publisher": "Canonical",
+                "sku": "20.04-LTS",
+                "version": "latest"
+              },
+              "osDisk": {
+                "createOption": "FromImage",
+                "managedDisk": {
+                  "storageAccountType": "Premium_LRS"
+                }
+              }
+            }
+          },
+          "vmScaleSetName": "sandbox-vmss"
+        },
+        "parent": "urn:pulumi:dev::PulumiSandbox::pulumi:pulumi:Stack::PulumiSandbox-dev",
+        "dependencies": [
+          "urn:pulumi:dev::PulumiSandbox::azure-native:resources:ResourceGroup::test-rg"
+        ],
+        "provider": "urn:pulumi:dev::PulumiSandbox::pulumi:providers:azure-native::default_1_97_0::04da6b54-80e4-46f7-96ec-b56ff0331ba9",
+        "propertyDependencies": {
+          "resourceGroupName": [
+            "urn:pulumi:dev::PulumiSandbox::azure-native:resources:ResourceGroup::test-rg"
+          ]
+        }
+      },
+      "detailedDiff": null
+    },
+    {
+      "op": "create",
+      "urn": "urn:pulumi:dev::PulumiSandbox::azure-native:sql:Server::sandbox-sql-server",
+      "provider": "urn:pulumi:dev::PulumiSandbox::pulumi:providers:azure-native::default_1_97_0::04da6b54-80e4-46f7-96ec-b56ff0331ba9",
+      "newState": {
+        "urn": "urn:pulumi:dev::PulumiSandbox::azure-native:sql:Server::sandbox-sql-server",
+        "custom": true,
+        "type": "azure-native:sql:Server",
+        "inputs": {
+          "__createBeforeDelete": true,
+          "administratorLogin": "sqladmin",
+          "location": "WestEurope",
+          "resourceGroupName": "test-rgc1b5caef",
+          "serverName": "sandbox-sql-server"
+        },
+        "parent": "urn:pulumi:dev::PulumiSandbox::pulumi:pulumi:Stack::PulumiSandbox-dev",
+        "dependencies": [
+          "urn:pulumi:dev::PulumiSandbox::azure-native:resources:ResourceGroup::test-rg"
+        ],
+        "provider": "urn:pulumi:dev::PulumiSandbox::pulumi:providers:azure-native::default_1_97_0::04da6b54-80e4-46f7-96ec-b56ff0331ba9"
+      },
+      "detailedDiff": null
+    },
+    {
+      "op": "create",
+      "urn": "urn:pulumi:dev::PulumiSandbox::azure-native:sql:Database::sandbox-sql-db",
+      "provider": "urn:pulumi:dev::PulumiSandbox::pulumi:providers:azure-native::default_1_97_0::04da6b54-80e4-46f7-96ec-b56ff0331ba9",
+      "newState": {
+        "urn": "urn:pulumi:dev::PulumiSandbox::azure-native:sql:Database::sandbox-sql-db",
+        "custom": true,
+        "type": "azure-native:sql:Database",
+        "inputs": {
+          "__createBeforeDelete": true,
+          "databaseName": "sandbox-sql-db",
+          "location": "WestEurope",
+          "resourceGroupName": "test-rgc1b5caef",
+          "serverName": "sandbox-sql-server",
+          "sku": {
+            "capacity": 100,
+            "name": "S3",
+            "tier": "Standard"
+          }
+        },
+        "parent": "urn:pulumi:dev::PulumiSandbox::pulumi:pulumi:Stack::PulumiSandbox-dev",
+        "dependencies": [
+          "urn:pulumi:dev::PulumiSandbox::azure-native:sql:Server::sandbox-sql-server"
+        ],
+        "provider": "urn:pulumi:dev::PulumiSandbox::pulumi:providers:azure-native::default_1_97_0::04da6b54-80e4-46f7-96ec-b56ff0331ba9"
+      },
+      "detailedDiff": null
     }
   ],
   "duration": 6002986000,
   "changeSummary": {
-    "create": 3
+    "create": 7
   }
 }
