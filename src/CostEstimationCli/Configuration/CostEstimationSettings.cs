@@ -51,4 +51,9 @@ public static class EnvironmentVariables
     // Pulumi settings
     public const string PULUMI_ACCESS_TOKEN = "PULUMI_ACCESS_TOKEN";
     public const string PULUMI_PROJECT_NAME = "PulumiProjectName";
+
+    // GitHub Actions integration
+    public const string GITHUB_ACTIONS  = "GITHUB_ACTIONS";
+    public const string GITHUB_ENV      = "GITHUB_ENV";
+    public const string GITHUB_OUTPUT   = "GITHUB_OUTPUT";
 }

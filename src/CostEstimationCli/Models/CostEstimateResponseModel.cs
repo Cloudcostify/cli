@@ -24,7 +24,10 @@ public class AksManagedCluster
 {
     public string name { get; set; } = string.Empty;
     public string location { get; set; } = string.Empty;
+    public string resourceGroupName { get; set; } = string.Empty;
+    public string tier { get; set; } = "Free";
     public List<NodePool> nodePools { get; set; } = new();
+    public AggregateCost controlPlaneCosts { get; set; } = new();
     public AggregateCost aggregateAKSClusterCosts { get; set; } = new();
 }
 
@@ -62,6 +65,16 @@ public class CostEstimateResponseModel
     public string cloudProvider { get; set; } = string.Empty;
     public AggregateCost aggregateCosts { get; set; } = new();
     public List<CloudResource> cloudResources { get; set; } = new();
+    public List<UnsupportedResource>? unsupportedResources { get; set; }
+}
+
+/// <summary>
+/// Represents a resource that could not be cost estimated due to an unsupported resource type
+/// </summary>
+public class UnsupportedResource
+{
+    public string resourceName { get; set; } = string.Empty;
+    public string resourceType { get; set; } = string.Empty;
 }
 
 /// <summary>

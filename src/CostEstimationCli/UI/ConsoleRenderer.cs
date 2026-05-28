@@ -109,7 +109,7 @@ public static class ConsoleRenderer
 
     // ── Results & HTML Recording ───────────────────────────────────────────────
 
-    public static void RenderResults(CostEstimateResponseModel estimate)
+    public static void RenderResults(CostEstimateResponseModel estimate, decimal? budget = null)
     {
         // Begynd at optage terminal-outputtet, så det kan gemmes som HTML til CI/CD pull requests
         AnsiConsole.Record();
@@ -121,7 +121,7 @@ public static class ConsoleRenderer
                 .LeftJustified());
 
         AnsiConsole.WriteLine();
-        RenderCostSummary(estimate.aggregateCosts);
+        RenderCostSummary(estimate.aggregateCosts, budget);
 
         if (estimate.cloudResources?.Any() == true)
         {
@@ -133,6 +133,18 @@ public static class ConsoleRenderer
 
             AnsiConsole.WriteLine();
             RenderResourceHierarchy(estimate);
+        }
+
+        if (estimate.unsupportedResources?.Any() == true)
+        {
+            AnsiConsole.WriteLine();
+            AnsiConsole.Write(
+                new Rule($"[bold #ffd700]UNSUPPORTED RESOURCES[/]")
+                    .RuleStyle(DarkGrey)
+                    .LeftJustified());
+
+            AnsiConsole.WriteLine();
+            RenderUnsupportedResources(estimate.unsupportedResources);
         }
 
         RenderProviderFooter();
@@ -150,7 +162,7 @@ public static class ConsoleRenderer
 
     // ── Cost Summary & Delta Architecture ──────────────────────────────────────
 
-    private static void RenderCostSummary(AggregateCost costs)
+    private static void RenderCostSummary(AggregateCost costs, decimal? budget = null)
     {
         var table = new Table()
             .Border(TableBorder.MinimalHeavyHead)
@@ -172,7 +184,7 @@ public static class ConsoleRenderer
         AnsiConsole.Write(table);
         AnsiConsole.WriteLine();
 
-        RenderBudgetGuard(costs.PerMonth);
+        RenderBudgetGuard(costs.PerMonth, budget);
     }
 
     private static void AddCostRow(Table table, string label, decimal amount, decimal? delta, bool isTarget)
@@ -212,58 +224,134 @@ public static class ConsoleRenderer
 
     private static void RenderResourceHierarchy(CostEstimateResponseModel estimate)
     {
+        var cloudProvider = estimate.cloudProvider;
+        var providerColor = GetProviderColor(cloudProvider);
+        var providerIcon  = SupportsUnicode ? "▰" : "■";
+        var rgIcon        = SupportsUnicode ? "📁 " : "";
+        var locationIcon  = SupportsUnicode ? "📍 " : "";
+
+        // Group all resources by resource group → location
+        var rgOrder   = new List<string>();
+        var locOrder  = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        var clusterGroups = new Dictionary<(string, string), List<AksManagedCluster>>();
+        var vmGroups      = new Dictionary<(string, string), List<VirtualMachine>>();
+        var vmssGroups    = new Dictionary<(string, string), List<VirtualMachineScaleSet>>();
+        var dbGroups      = new Dictionary<(string, string), List<SqlDatabase>>();
+        var miGroups      = new Dictionary<(string, string), List<SqlManagedInstance>>();
+
+        void Track(string rg, string loc)
+        {
+            if (!locOrder.ContainsKey(rg)) { rgOrder.Add(rg); locOrder[rg] = []; }
+            if (!locOrder[rg].Contains(loc, StringComparer.OrdinalIgnoreCase)) locOrder[rg].Add(loc);
+        }
+
         foreach (var resource in estimate.cloudResources ?? [])
         {
-            foreach (var cluster in resource.aksManagedClusters ?? [])
+            foreach (var item in resource.aksManagedClusters ?? [])
             {
-                RenderClusterTree(estimate.cloudProvider, cluster);
-                AnsiConsole.WriteLine();
+                Track(item.resourceGroupName, item.location);
+                var key = (item.resourceGroupName, item.location);
+                if (!clusterGroups.ContainsKey(key)) clusterGroups[key] = [];
+                clusterGroups[key].Add(item);
             }
-
-            foreach (var vm in resource.virtualMachines ?? [])
+            foreach (var item in resource.virtualMachines ?? [])
             {
-                RenderVirtualMachineTree(estimate.cloudProvider, vm);
-                AnsiConsole.WriteLine();
+                Track(item.resourceGroupName, item.location);
+                var key = (item.resourceGroupName, item.location);
+                if (!vmGroups.ContainsKey(key)) vmGroups[key] = [];
+                vmGroups[key].Add(item);
             }
-
-            foreach (var vmss in resource.virtualMachineScaleSets ?? [])
+            foreach (var item in resource.virtualMachineScaleSets ?? [])
             {
-                RenderVirtualMachineScaleSetTree(estimate.cloudProvider, vmss);
-                AnsiConsole.WriteLine();
+                Track(item.resourceGroupName, item.location);
+                var key = (item.resourceGroupName, item.location);
+                if (!vmssGroups.ContainsKey(key)) vmssGroups[key] = [];
+                vmssGroups[key].Add(item);
             }
-
-            foreach (var db in resource.sqlDatabases ?? [])
+            foreach (var item in resource.sqlDatabases ?? [])
             {
-                RenderSqlDatabaseTree(estimate.cloudProvider, db);
-                AnsiConsole.WriteLine();
+                Track(item.resourceGroupName, item.location);
+                var key = (item.resourceGroupName, item.location);
+                if (!dbGroups.ContainsKey(key)) dbGroups[key] = [];
+                dbGroups[key].Add(item);
             }
-
-            foreach (var mi in resource.sqlManagedInstances ?? [])
+            foreach (var item in resource.sqlManagedInstances ?? [])
             {
-                RenderSqlManagedInstanceTree(estimate.cloudProvider, mi);
-                AnsiConsole.WriteLine();
+                Track(item.resourceGroupName, item.location);
+                var key = (item.resourceGroupName, item.location);
+                if (!miGroups.ContainsKey(key)) miGroups[key] = [];
+                miGroups[key].Add(item);
             }
         }
+
+        var tree = new Tree($"[bold {providerColor}]{providerIcon} {Markup.Escape(cloudProvider)}[/]")
+            .Style(new Style(foreground: Color.Grey30));
+
+        foreach (var rg in rgOrder)
+        {
+            var rgNode = tree.AddNode(
+                $"{rgIcon}[{LightGrey}]Resource Group:[/] [{NeonCyan}]{Markup.Escape(rg)}[/]");
+
+            foreach (var loc in locOrder[rg])
+            {
+                var locNode = rgNode.AddNode(
+                    $"{locationIcon}[{LightGrey}]{Markup.Escape(loc)}[/]");
+
+                var key = (rg, loc);
+
+                if (clusterGroups.TryGetValue(key, out var clusters))
+                    foreach (var c in clusters) AddClusterNode(locNode, c);
+
+                if (vmGroups.TryGetValue(key, out var vms))
+                    foreach (var v in vms) AddVirtualMachineNode(locNode, v);
+
+                if (vmssGroups.TryGetValue(key, out var vmssList))
+                    foreach (var s in vmssList) AddVirtualMachineScaleSetNode(locNode, s);
+
+                if (dbGroups.TryGetValue(key, out var dbs))
+                    foreach (var d in dbs) AddSqlDatabaseNode(locNode, d);
+
+                if (miGroups.TryGetValue(key, out var mis))
+                    foreach (var m in mis) AddSqlManagedInstanceNode(locNode, m);
+            }
+        }
+
+        AnsiConsole.Write(tree);
+        AnsiConsole.WriteLine();
     }
 
-    private static void RenderClusterTree(string cloudProvider, AksManagedCluster cluster)
+    private static void AddClusterNode(TreeNode parent, AksManagedCluster cluster)
     {
-        var providerColor = GetProviderColor(cloudProvider);
-        var providerIcon = SupportsUnicode ? "▰" : "■";
         var clusterIcon = SupportsUnicode ? "🖥️ " : "";
-
-        var tree = new Tree($"[bold {providerColor}]{providerIcon} {Markup.Escape(cloudProvider)}[/] [{LightGrey}]({Markup.Escape(cluster.location)})[/]")
-            .Style(new Style(foreground: Color.Grey30));
 
         // NATIVE HYPERLINK: Gør klyngen klikbar direkte til Azure Portalen i understøttede terminaler
         var portalUrl = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(cluster.name)}";
-        var clusterNode = tree.AddNode(
+        var clusterNode = parent.AddNode(
             $"{clusterIcon}[white]AKS Managed Cluster:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(cluster.name)}[/][/]");
 
         foreach (var pool in cluster.nodePools ?? [])
             RenderNodePoolBranch(clusterNode, pool);
 
-        AnsiConsole.Write(tree);
+        var tierNormalized = cluster.tier?.Trim() ?? "Free";
+        var isStandardOrPremium =
+            string.Equals(tierNormalized, "Standard", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(tierNormalized, "Premium", StringComparison.OrdinalIgnoreCase);
+
+        var tierColor = isStandardOrPremium ? CyberOrange : DarkGrey;
+        clusterNode.AddNode(
+            $"[{LightGrey}]Tier:[/]         [{tierColor}]{Markup.Escape(tierNormalized)}[/]");
+
+        if (isStandardOrPremium && cluster.controlPlaneCosts.PerHour > 0)
+        {
+            var slaIcon = SupportsUnicode ? "🛡️ " : "";
+            var slaNode = clusterNode.AddNode(
+                $"{slaIcon}[{LightGrey}]Control Plane SLA:[/] [{NeonCyan}]{FormatCurrencyPlain(cluster.controlPlaneCosts.PerHour)}[/] [{DarkGrey}]/hr[/] " +
+                $"[{DarkGrey}]([/][{CyberOrange}]{FormatCurrencyPlain(cluster.controlPlaneCosts.PerMonth)}[/][{DarkGrey}]/mo)[/]");
+        }
+
+        clusterNode.AddNode(
+            $"[{LightGrey}]Cluster Total:[/] [{NeonCyan}]{FormatCurrencyPlain(cluster.aggregateAKSClusterCosts.PerHour)}[/] [{DarkGrey}]/hr[/] " +
+            $"[{DarkGrey}]([/][{CyberOrange}]{FormatCurrencyPlain(cluster.aggregateAKSClusterCosts.PerMonth)}[/][{DarkGrey}]/mo)[/]");
     }
 
     private static void RenderNodePoolBranch(TreeNode parent, NodePool pool)
@@ -284,17 +372,12 @@ public static class ConsoleRenderer
             $"[{DarkGrey}]([/][{CyberOrange}]{FormatCurrencyPlain(subtotal)}[/][{DarkGrey}]/hr total)[/]");
     }
 
-    private static void RenderVirtualMachineTree(string cloudProvider, VirtualMachine vm)
+    private static void AddVirtualMachineNode(TreeNode parent, VirtualMachine vm)
     {
-        var providerColor = GetProviderColor(cloudProvider);
-        var providerIcon = SupportsUnicode ? "▰" : "■";
         var vmIcon = SupportsUnicode ? "💻 " : "";
 
         var portalUrl = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(vm.name)}";
-        var tree = new Tree($"[bold {providerColor}]{providerIcon} {Markup.Escape(cloudProvider)}[/] [{LightGrey}]({Markup.Escape(vm.location)})[/]")
-            .Style(new Style(foreground: Color.Grey30));
-
-        var vmNode = tree.AddNode(
+        var vmNode = parent.AddNode(
             $"{vmIcon}[white]Virtual Machine:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(vm.name)}[/][/]");
 
         var skuUrl = "https://azure.microsoft.com/en-us/pricing/details/virtual-machines/series/";
@@ -304,21 +387,14 @@ public static class ConsoleRenderer
         vmNode.AddNode(
             $"[{LightGrey}]Price:[/]    [{NeonCyan}]{FormatCurrencyPlain(vm.virtualMachineSku.price)}[/] [{DarkGrey}]/{Markup.Escape(vm.virtualMachineSku.priceUnit)}[/] " +
             $"[{DarkGrey}]([/][{CyberOrange}]{FormatCurrencyPlain(vm.aggregateVirtualMachineCosts.PerMonth)}[/][{DarkGrey}]/mo)[/]");
-
-        AnsiConsole.Write(tree);
     }
 
-    private static void RenderVirtualMachineScaleSetTree(string cloudProvider, VirtualMachineScaleSet vmss)
+    private static void AddVirtualMachineScaleSetNode(TreeNode parent, VirtualMachineScaleSet vmss)
     {
-        var providerColor = GetProviderColor(cloudProvider);
-        var providerIcon = SupportsUnicode ? "▰" : "■";
         var vmssIcon = SupportsUnicode ? "🖥️ " : "";
 
         var portalUrl = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(vmss.name)}";
-        var tree = new Tree($"[bold {providerColor}]{providerIcon} {Markup.Escape(cloudProvider)}[/] [{LightGrey}]({Markup.Escape(vmss.location)})[/]")
-            .Style(new Style(foreground: Color.Grey30));
-
-        var vmssNode = tree.AddNode(
+        var vmssNode = parent.AddNode(
             $"{vmssIcon}[white]VM Scale Set:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(vmss.name)}[/][/]");
 
         var skuUrl = "https://azure.microsoft.com/en-us/pricing/details/virtual-machines/series/";
@@ -331,21 +407,14 @@ public static class ConsoleRenderer
         vmssNode.AddNode(
             $"[{LightGrey}]Base Price:[/] [{NeonCyan}]{FormatCurrencyPlain(perInstance)}[/] [{DarkGrey}]/{Markup.Escape(vmss.virtualMachineSku.priceUnit)}[/] " +
             $"[{DarkGrey}]([/][{CyberOrange}]{FormatCurrencyPlain(vmss.aggregateVirtualMachineScaleSetCosts.PerMonth)}[/][{DarkGrey}]/mo total)[/]");
-
-        AnsiConsole.Write(tree);
     }
 
-    private static void RenderSqlDatabaseTree(string cloudProvider, SqlDatabase db)
+    private static void AddSqlDatabaseNode(TreeNode parent, SqlDatabase db)
     {
-        var providerColor = GetProviderColor(cloudProvider);
-        var providerIcon = SupportsUnicode ? "▰" : "■";
         var dbIcon = SupportsUnicode ? "🗄️ " : "";
 
         var portalUrl = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(db.name)}";
-        var tree = new Tree($"[bold {providerColor}]{providerIcon} {Markup.Escape(cloudProvider)}[/] [{LightGrey}]({Markup.Escape(db.location)})[/]")
-            .Style(new Style(foreground: Color.Grey30));
-
-        var dbNode = tree.AddNode(
+        var dbNode = parent.AddNode(
             $"{dbIcon}[white]SQL Database:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(db.name)}[/][/]");
 
         dbNode.AddNode($"[{LightGrey}]Server:[/]   [{LightGrey}]{Markup.Escape(db.serverName)}[/]");
@@ -355,21 +424,14 @@ public static class ConsoleRenderer
         dbNode.AddNode(
             $"[{LightGrey}]Price:[/]    [{NeonCyan}]{FormatCurrencyPlain(db.sqlDatabaseSku.price)}[/] [{DarkGrey}]/{Markup.Escape(db.sqlDatabaseSku.priceUnit)}[/] " +
             $"[{DarkGrey}]([/][{CyberOrange}]{FormatCurrencyPlain(db.aggregateSqlDatabaseCosts.PerMonth)}[/][{DarkGrey}]/mo)[/]");
-
-        AnsiConsole.Write(tree);
     }
 
-    private static void RenderSqlManagedInstanceTree(string cloudProvider, SqlManagedInstance mi)
+    private static void AddSqlManagedInstanceNode(TreeNode parent, SqlManagedInstance mi)
     {
-        var providerColor = GetProviderColor(cloudProvider);
-        var providerIcon = SupportsUnicode ? "▰" : "■";
         var miIcon = SupportsUnicode ? "🗄️ " : "";
 
         var portalUrl = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(mi.name)}";
-        var tree = new Tree($"[bold {providerColor}]{providerIcon} {Markup.Escape(cloudProvider)}[/] [{LightGrey}]({Markup.Escape(mi.location)})[/]")
-            .Style(new Style(foreground: Color.Grey30));
-
-        var miNode = tree.AddNode(
+        var miNode = parent.AddNode(
             $"{miIcon}[white]SQL Managed Instance:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(mi.name)}[/][/]");
 
         var skuUrl = "https://azure.microsoft.com/en-us/pricing/details/azure-sql-managed-instance/single/";
@@ -379,15 +441,45 @@ public static class ConsoleRenderer
         miNode.AddNode($"[{LightGrey}]License:[/]      [{LightGrey}]{Markup.Escape(mi.licenseType)}[/]");
         miNode.AddNode(
             $"[{LightGrey}]Total Cost:[/]  [{CyberOrange}]{FormatCurrencyPlain(mi.aggregateSqlManagedInstanceCosts.PerMonth)}[/][{DarkGrey}]/mo[/]");
+    }
 
-        AnsiConsole.Write(tree);
+    // ── Unsupported Resources ──────────────────────────────────────────────────
+
+    private static void RenderUnsupportedResources(List<UnsupportedResource> resources)
+    {
+        var warningIcon = SupportsUnicode ? "⚠" : "[!]";
+        AnsiConsole.MarkupLine(
+            $"  [{DarkGrey}]{warningIcon}  {resources.Count} resource(s) were found but are not yet supported for cost estimation:[/]");
+        AnsiConsole.WriteLine();
+
+        var table = new Table()
+            .Border(TableBorder.MinimalHeavyHead)
+            .BorderColor(Color.Grey30);
+
+        table.AddColumn(new TableColumn($"[{LightGrey}]Resource Name[/]"));
+        table.AddColumn(new TableColumn($"[{LightGrey}]Resource Type[/]"));
+
+        foreach (var resource in resources)
+        {
+            table.AddRow(
+                $"[{NeonCyan}]{Markup.Escape(resource.resourceName)}[/]",
+                $"[{DarkGrey}]{Markup.Escape(resource.resourceType)}[/]"
+            );
+        }
+
+        AnsiConsole.Write(table);
     }
 
     // ── Budget Guard ───────────────────────────────────────────────────────────
 
-    private static void RenderBudgetGuard(decimal monthlyCost)
+    private static void RenderBudgetGuard(decimal monthlyCost, decimal? budget = null)
     {
-        var pct = Math.Min((double)(monthlyCost / DefaultBudgetLimit * 100.0m), 100.0);
+        var threshold = budget ?? DefaultBudgetLimit;
+        var pct = Math.Min((double)(monthlyCost / threshold * 100.0m), 100.0);
+
+        var budgetLabel = budget.HasValue
+            ? $"{FormatCurrencyPlain(threshold)} (--budget) monthly budget ({pct:N0}%)"
+            : $"{FormatCurrencyPlain(threshold)} default monthly budget ({pct:N0}%)";
 
         var (color, icon) = pct switch
         {
@@ -408,7 +500,7 @@ public static class ConsoleRenderer
         AnsiConsole.MarkupLine($" [{LightGrey}]Budget Guard[/]");
         AnsiConsole.MarkupLine(
             $"   [{color}]{icon}[/] [{color}]{filledBar}[/][{DarkGrey}]{emptyBar}[/]  " +
-            $"[{color}]{FormatCurrencyPlain(monthlyCost)}[/] [{LightGrey}]/[/] [{LightGrey}]{FormatCurrencyPlain(DefaultBudgetLimit)} monthly budget ({pct:N0}%)[/]");
+            $"[{color}]{FormatCurrencyPlain(monthlyCost)}[/] [{LightGrey}]/[/] [{LightGrey}]{budgetLabel}[/]");
     }
 
     // ── Provider Footer ────────────────────────────────────────────────────────
@@ -463,6 +555,7 @@ public static class ConsoleRenderer
         table.AddRow(new Markup($"[bold {LightGrey}]OPTIONS[/]"), new Markup(""));
         table.AddRow(new Markup($"[{NeonCyan}]  --provider[/] [dim]<name>[/]"),             new Markup($"[{LightGrey}]IaC provider:[/]  [white]pulumi[/]  [white]bicep[/]  [white]cdk[/]"));
         table.AddRow(new Markup($"[{NeonCyan}]  --directory[/] [dim]<path>[/]"),            new Markup($"[{LightGrey}]Working directory[/]  [dim](default: current)[/]"));
+        table.AddRow(new Markup($"[{NeonCyan}]  --budget[/] [dim]<usd>[/]"),               new Markup($"[{LightGrey}]Maximum monthly cost in USD. Sets [/][white]BUDGET_EXCEEDED[/][{LightGrey}] in GitHub Actions when exceeded.[/]"));
         table.AddRow(new Markup($"[{NeonCyan}]  --help[/][dim],[/] [{NeonCyan}]-h[/]"),     new Markup($"[{LightGrey}]Show this help message[/]"));
         table.AddEmptyRow();
 

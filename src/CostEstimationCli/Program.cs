@@ -91,7 +91,36 @@ class Program
                     return result;
                 });
 
-            ConsoleRenderer.RenderResults(costEstimate);
+            ConsoleRenderer.RenderResults(costEstimate, cliArgs.Budget);
+
+            // ── Budget threshold check ─────────────────────────────────────────
+            if (cliArgs.Budget.HasValue)
+            {
+                var budgetExceeded = costEstimate.aggregateCosts.PerMonth > cliArgs.Budget.Value;
+
+                if (budgetExceeded)
+                {
+                    var isGitHubActions = string.Equals(
+                        Environment.GetEnvironmentVariable(EnvironmentVariables.GITHUB_ACTIONS),
+                        "true", StringComparison.OrdinalIgnoreCase);
+
+                    if (isGitHubActions)
+                    {
+                        var githubEnvFile    = Environment.GetEnvironmentVariable(EnvironmentVariables.GITHUB_ENV);
+                        var githubOutputFile = Environment.GetEnvironmentVariable(EnvironmentVariables.GITHUB_OUTPUT);
+
+                        if (!string.IsNullOrEmpty(githubEnvFile))
+                            await File.AppendAllTextAsync(githubEnvFile, "BUDGET_EXCEEDED=true\n");
+
+                        if (!string.IsNullOrEmpty(githubOutputFile))
+                            await File.AppendAllTextAsync(githubOutputFile, "budget_exceeded=true\n");
+
+                        logger.LogInformation(
+                            "Budget exceeded (${Actual:N2}/mo > ${Limit:N2}/mo). GitHub Actions outputs written.",
+                            costEstimate.aggregateCosts.PerMonth, cliArgs.Budget.Value);
+                    }
+                }
+            }
 
             logger.LogInformation("Cost estimation completed successfully");
             return 0;
@@ -171,10 +200,11 @@ class Program
         return config;
     }
 
-    private static (string? Provider, string? WorkingDirectory) ParseArguments(string[] args)
+    private static (string? Provider, string? WorkingDirectory, decimal? Budget) ParseArguments(string[] args)
     {
         string? provider = null;
         string? workingDir = null;
+        decimal? budget = null;
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -188,6 +218,13 @@ class Program
                 workingDir = args[i + 1];
                 i++;
             }
+            else if (args[i] == "--budget" && i + 1 < args.Length)
+            {
+                if (decimal.TryParse(args[i + 1], System.Globalization.NumberStyles.Number,
+                        System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+                    budget = parsed;
+                i++;
+            }
             else if (args[i] == "--help" || args[i] == "-h")
             {
                 ConsoleRenderer.RenderHelp();
@@ -195,7 +232,7 @@ class Program
             }
         }
 
-        return (provider, workingDir);
+        return (provider, workingDir, budget);
     }
 
     private static void ConfigureServices(IServiceCollection services, IConfiguration configuration, bool isDemoMode)
@@ -222,13 +259,8 @@ class Program
 
         services.AddTransient<ProviderDetectionService>();
 
-        if (isDemoMode)
-        {
-            services.AddTransient<IApiRepository, DemoApiRepository>();
-        }
-        else
-        {
-            services.AddHttpClient<IApiRepository, ApiRepository>();
-        }
+        // Demo mode only controls the data source (file vs. real Pulumi stack).
+        // The real API is always called — DemoApiRepository is never used.
+        services.AddHttpClient<IApiRepository, ApiRepository>();
     }
 }

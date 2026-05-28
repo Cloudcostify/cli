@@ -19,6 +19,7 @@
         {
           "name": "sandbox-aks-cfy",
           "location": "WestEurope",
+          "tier": "Standard",
           "nodePools": [
             {
               "name": "agentpool",
@@ -40,12 +41,19 @@
               }
             }
           ],
+          "controlPlaneCosts": {
+            "perHour": 0.1000,
+            "perDay": 2.4000,
+            "perWeek": 16.8000,
+            "perMonth": 72.0000,
+            "perYear": 876.0000
+          },
           "aggregateAKSClusterCosts": {
-            "perHour": 0.1248,
-            "perDay": 2.9952,
-            "perWeek": 20.9664,
-            "perMonth": 91.1040,
-            "perYear": 1093.2480
+            "perHour": 0.2248,
+            "perDay": 5.3952,
+            "perWeek": 37.7664,
+            "perMonth": 161.8560,
+            "perYear": 1969.4880
           }
         }
       ],
