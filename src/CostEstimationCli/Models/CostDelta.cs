@@ -29,4 +29,12 @@ public class CostDelta
 
     /// <summary>Number of resources that remain unchanged.</summary>
     public int UnchangedCount { get; init; }
+
+    /// <summary>
+    /// Maps each logical resource name (last segment of the Pulumi URN) to its
+    /// Pulumi step operation: "create", "delete", "update", or "same".
+    /// Used by the renderer to decorate individual resource nodes with op badges.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> ResourceOps { get; init; } =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 }

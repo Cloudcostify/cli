@@ -55,6 +55,7 @@ public class DeltaCalculationService
 
             var createStepRaws = new List<string>();
             int createdCount = 0, deletedCount = 0, updatedCount = 0, unchangedCount = 0;
+            var resourceOps = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var step in stepsElement.EnumerateArray())
             {
@@ -73,6 +74,10 @@ public class DeltaCalculationService
                     _logger.LogDebug("Skipping ignored resource {Urn}.", urn);
                     continue;
                 }
+
+                // Track op per resource name for per-node badge rendering
+                if (!string.IsNullOrEmpty(resourceName) && !string.IsNullOrEmpty(op))
+                    resourceOps[resourceName] = op;
 
                 switch (op)
                 {
@@ -122,6 +127,7 @@ public class DeltaCalculationService
                 DeletedCount   = deletedCount,
                 UpdatedCount   = updatedCount,
                 UnchangedCount = unchangedCount,
+                ResourceOps    = resourceOps,
             };
         }
         catch (Exception ex)

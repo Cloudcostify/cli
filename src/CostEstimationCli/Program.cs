@@ -118,13 +118,16 @@ class Program
                 Environment.GetEnvironmentVariable(EnvironmentVariables.GITHUB_ACTIONS),
                 "true", StringComparison.OrdinalIgnoreCase);
 
-            if (isGitHubActions && effectiveBudget.HasValue)
-            {
-                var budgetExceeded    = costEstimate.aggregateCosts.PerMonth > effectiveBudget.Value;
-                var budgetExceededStr = budgetExceeded ? "true" : "false";
+            var githubEnvFile    = Environment.GetEnvironmentVariable(EnvironmentVariables.GITHUB_ENV);
+            var githubOutputFile = Environment.GetEnvironmentVariable(EnvironmentVariables.GITHUB_OUTPUT);
 
-                var githubEnvFile    = Environment.GetEnvironmentVariable(EnvironmentVariables.GITHUB_ENV);
-                var githubOutputFile = Environment.GetEnvironmentVariable(EnvironmentVariables.GITHUB_OUTPUT);
+            if (!string.IsNullOrEmpty(githubEnvFile) || !string.IsNullOrEmpty(githubOutputFile))
+            {
+                // budget_exceeded is true only when a limit is configured AND the estimate exceeds it;
+                // when no budget is set the output is always "false" so downstream steps can branch safely.
+                var budgetExceeded    = effectiveBudget.HasValue &&
+                                        costEstimate.aggregateCosts.PerMonth > effectiveBudget.Value;
+                var budgetExceededStr = budgetExceeded ? "true" : "false";
 
                 if (!string.IsNullOrEmpty(githubEnvFile))
                     await File.AppendAllTextAsync(githubEnvFile, $"BUDGET_EXCEEDED={budgetExceededStr}\n");
@@ -134,10 +137,10 @@ class Program
 
                 logger.LogInformation(
                     "GitHub Actions outputs written: budget_exceeded={Exceeded} " +
-                    "(${Actual:N2}/mo vs ${Limit:N2}/mo limit).",
+                    "(${Actual:N2}/mo vs ${Limit} limit).",
                     budgetExceededStr,
                     costEstimate.aggregateCosts.PerMonth,
-                    effectiveBudget.Value);
+                    effectiveBudget.HasValue ? $"{effectiveBudget.Value:N2}" : "none");
             }
 
             // ── Feature 2: Markdown report ────────────────────────────────────

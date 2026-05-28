@@ -22,6 +22,9 @@ public static class ConsoleRenderer
 
     // Dynamisk tjek af terminalens evner (CI/CD vs lokal moderne terminal)
     private static bool SupportsUnicode => AnsiConsole.Profile.Capabilities.Unicode;
+    private static bool IsCI =>
+        !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI")) ||
+        !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
 
     // ── BLOK-BANNER (Ultra-fed og lige version til Cloudcostify) ────────────────
     private static readonly string[] BannerLines =
@@ -56,6 +59,12 @@ public static class ConsoleRenderer
 
     private static void RenderBanner()
     {
+        if (IsCI)
+        {
+            AnsiConsole.MarkupLine($"[bold {CyberOrange}]Cloudcostify[/] [bold {GradientAccent}]CLI[/]");
+            return;
+        }
+
         // Genererer en flydende lodret gradient på tværs af ASCII-logoet
         for (int i = 0; i < BannerLines.Length; i++)
         {
@@ -268,6 +277,37 @@ public static class ConsoleRenderer
 
     // ── Resource Hierarchy Tree & Hyperlinks ───────────────────────────────────
 
+    // Returns the colored cost-delta suffix appended after the resource name (e.g. "  +$178.12/mo").
+    private static string BuildDeltaBadge(string resourceName, decimal monthlyAmount, CostDelta? delta)
+    {
+        if (delta?.ResourceOps is null) return "";
+        if (!delta.ResourceOps.TryGetValue(resourceName, out var op)) return "";
+
+        return op switch
+        {
+            "create" => $"  [bold {CyberOrange}]+{FormatCurrencyPlain(monthlyAmount)}/mo[/]",
+            "delete" => $"  [bold green]-{FormatCurrencyPlain(monthlyAmount)}/mo[/]",
+            "update" => $"  [bold #ffd700]~[/]",
+            _        => "",
+        };
+    }
+
+    // Returns a short colored op-badge prefix rendered before the resource type label.
+    // [[  and ]] are Spectre.Console escape sequences that render as literal [ and ].
+    private static string BuildOpPrefix(string resourceName, CostDelta? delta)
+    {
+        if (delta?.ResourceOps is null) return "";
+        if (!delta.ResourceOps.TryGetValue(resourceName, out var op)) return "";
+
+        return op switch
+        {
+            "create" => "[bold green][[+]][/] ",
+            "delete" => "[bold red][[-]][/] ",
+            "update" => "[bold #ffd700][[~]][/] ",
+            _        => "",
+        };
+    }
+
     private static void RenderResourceHierarchy(CostEstimateResponseModel estimate)
     {
         var cloudProvider = estimate.cloudProvider;
@@ -346,19 +386,19 @@ public static class ConsoleRenderer
                 var key = (rg, loc);
 
                 if (clusterGroups.TryGetValue(key, out var clusters))
-                    foreach (var c in clusters) AddClusterNode(locNode, c);
+                    foreach (var c in clusters) AddClusterNode(locNode, c, estimate.Delta);
 
                 if (vmGroups.TryGetValue(key, out var vms))
-                    foreach (var v in vms) AddVirtualMachineNode(locNode, v);
+                    foreach (var v in vms) AddVirtualMachineNode(locNode, v, estimate.Delta);
 
                 if (vmssGroups.TryGetValue(key, out var vmssList))
-                    foreach (var s in vmssList) AddVirtualMachineScaleSetNode(locNode, s);
+                    foreach (var s in vmssList) AddVirtualMachineScaleSetNode(locNode, s, estimate.Delta);
 
                 if (dbGroups.TryGetValue(key, out var dbs))
-                    foreach (var d in dbs) AddSqlDatabaseNode(locNode, d);
+                    foreach (var d in dbs) AddSqlDatabaseNode(locNode, d, estimate.Delta);
 
                 if (miGroups.TryGetValue(key, out var mis))
-                    foreach (var m in mis) AddSqlManagedInstanceNode(locNode, m);
+                    foreach (var m in mis) AddSqlManagedInstanceNode(locNode, m, estimate.Delta);
             }
         }
 
@@ -366,14 +406,16 @@ public static class ConsoleRenderer
         AnsiConsole.WriteLine();
     }
 
-    private static void AddClusterNode(TreeNode parent, AksManagedCluster cluster)
+    private static void AddClusterNode(TreeNode parent, AksManagedCluster cluster, CostDelta? delta)
     {
         var clusterIcon = SupportsUnicode ? "🖥️ " : "";
 
         // NATIVE HYPERLINK: Gør klyngen klikbar direkte til Azure Portalen i understøttede terminaler
-        var portalUrl = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(cluster.name)}";
+        var portalUrl  = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(cluster.name)}";
+        var opPrefix   = BuildOpPrefix(cluster.name, delta);
+        var deltaBadge = BuildDeltaBadge(cluster.name, cluster.aggregateAKSClusterCosts.PerMonth, delta);
         var clusterNode = parent.AddNode(
-            $"{clusterIcon}[white]AKS Managed Cluster:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(cluster.name)}[/][/]");
+            $"{clusterIcon}{opPrefix}[white]AKS Managed Cluster:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(cluster.name)}[/][/]{deltaBadge}");
 
         foreach (var pool in cluster.nodePools ?? [])
             RenderNodePoolBranch(clusterNode, pool);
@@ -418,13 +460,15 @@ public static class ConsoleRenderer
             $"[{DarkGrey}]([/][{CyberOrange}]{FormatCurrencyPlain(subtotal)}[/][{DarkGrey}]/hr total)[/]");
     }
 
-    private static void AddVirtualMachineNode(TreeNode parent, VirtualMachine vm)
+    private static void AddVirtualMachineNode(TreeNode parent, VirtualMachine vm, CostDelta? delta)
     {
         var vmIcon = SupportsUnicode ? "💻 " : "";
 
-        var portalUrl = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(vm.name)}";
+        var portalUrl  = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(vm.name)}";
+        var opPrefix   = BuildOpPrefix(vm.name, delta);
+        var deltaBadge = BuildDeltaBadge(vm.name, vm.aggregateVirtualMachineCosts.PerMonth, delta);
         var vmNode = parent.AddNode(
-            $"{vmIcon}[white]Virtual Machine:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(vm.name)}[/][/]");
+            $"{vmIcon}{opPrefix}[white]Virtual Machine:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(vm.name)}[/][/]{deltaBadge}");
 
         var skuUrl = "https://azure.microsoft.com/en-us/pricing/details/virtual-machines/series/";
         vmNode.AddNode($"[{LightGrey}]VM SKU:[/]   [link={skuUrl}][{NeonCyan}]{Markup.Escape(vm.virtualMachineSku.sku)}[/][/]");
@@ -435,13 +479,15 @@ public static class ConsoleRenderer
             $"[{DarkGrey}]([/][{CyberOrange}]{FormatCurrencyPlain(vm.aggregateVirtualMachineCosts.PerMonth)}[/][{DarkGrey}]/mo)[/]");
     }
 
-    private static void AddVirtualMachineScaleSetNode(TreeNode parent, VirtualMachineScaleSet vmss)
+    private static void AddVirtualMachineScaleSetNode(TreeNode parent, VirtualMachineScaleSet vmss, CostDelta? delta)
     {
         var vmssIcon = SupportsUnicode ? "🖥️ " : "";
 
-        var portalUrl = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(vmss.name)}";
+        var portalUrl  = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(vmss.name)}";
+        var opPrefix   = BuildOpPrefix(vmss.name, delta);
+        var deltaBadge = BuildDeltaBadge(vmss.name, vmss.aggregateVirtualMachineScaleSetCosts.PerMonth, delta);
         var vmssNode = parent.AddNode(
-            $"{vmssIcon}[white]VM Scale Set:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(vmss.name)}[/][/]");
+            $"{vmssIcon}{opPrefix}[white]VM Scale Set:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(vmss.name)}[/][/]{deltaBadge}");
 
         var skuUrl = "https://azure.microsoft.com/en-us/pricing/details/virtual-machines/series/";
         vmssNode.AddNode($"[{LightGrey}]VM SKU:[/]     [link={skuUrl}][{NeonCyan}]{Markup.Escape(vmss.virtualMachineSku.sku)}[/][/]");
@@ -455,13 +501,15 @@ public static class ConsoleRenderer
             $"[{DarkGrey}]([/][{CyberOrange}]{FormatCurrencyPlain(vmss.aggregateVirtualMachineScaleSetCosts.PerMonth)}[/][{DarkGrey}]/mo total)[/]");
     }
 
-    private static void AddSqlDatabaseNode(TreeNode parent, SqlDatabase db)
+    private static void AddSqlDatabaseNode(TreeNode parent, SqlDatabase db, CostDelta? delta)
     {
         var dbIcon = SupportsUnicode ? "🗄️ " : "";
 
-        var portalUrl = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(db.name)}";
+        var portalUrl  = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(db.name)}";
+        var opPrefix   = BuildOpPrefix(db.name, delta);
+        var deltaBadge = BuildDeltaBadge(db.name, db.aggregateSqlDatabaseCosts.PerMonth, delta);
         var dbNode = parent.AddNode(
-            $"{dbIcon}[white]SQL Database:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(db.name)}[/][/]");
+            $"{dbIcon}{opPrefix}[white]SQL Database:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(db.name)}[/][/]{deltaBadge}");
 
         dbNode.AddNode($"[{LightGrey}]Server:[/]   [{LightGrey}]{Markup.Escape(db.serverName)}[/]");
 
@@ -472,13 +520,15 @@ public static class ConsoleRenderer
             $"[{DarkGrey}]([/][{CyberOrange}]{FormatCurrencyPlain(db.aggregateSqlDatabaseCosts.PerMonth)}[/][{DarkGrey}]/mo)[/]");
     }
 
-    private static void AddSqlManagedInstanceNode(TreeNode parent, SqlManagedInstance mi)
+    private static void AddSqlManagedInstanceNode(TreeNode parent, SqlManagedInstance mi, CostDelta? delta)
     {
         var miIcon = SupportsUnicode ? "🗄️ " : "";
 
-        var portalUrl = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(mi.name)}";
+        var portalUrl  = $"https://portal.azure.com/#panelId/resource/search?q={Uri.EscapeDataString(mi.name)}";
+        var opPrefix   = BuildOpPrefix(mi.name, delta);
+        var deltaBadge = BuildDeltaBadge(mi.name, mi.aggregateSqlManagedInstanceCosts.PerMonth, delta);
         var miNode = parent.AddNode(
-            $"{miIcon}[white]SQL Managed Instance:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(mi.name)}[/][/]");
+            $"{miIcon}{opPrefix}[white]SQL Managed Instance:[/] [link={portalUrl}][bold {NeonCyan}]{Markup.Escape(mi.name)}[/][/]{deltaBadge}");
 
         var skuUrl = "https://azure.microsoft.com/en-us/pricing/details/azure-sql-managed-instance/single/";
         miNode.AddNode($"[{LightGrey}]SKU:[/]          [link={skuUrl}][{NeonCyan}]{Markup.Escape(mi.sqlManagedInstanceSku.sku)}[/][/] [{DarkGrey}]({Markup.Escape(mi.sqlManagedInstanceSku.tier)})[/]");
