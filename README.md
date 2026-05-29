@@ -197,31 +197,6 @@ dotnet test
 dotnet test --collect:"XPlat Code Coverage"
 ```
 
-## Architecture
-
-The CLI is built using modern .NET practices:
-
-- **Dependency Injection**: Full DI container with service registration
-- **Configuration Management**: Flexible configuration via JSON and environment variables
-- **Repository Pattern**: Clean separation of data access
-- **Service Layer**: Business logic encapsulation
-- **Comprehensive Testing**: Unit tests with TUnit, NSubstitute, and FluentAssertions
-
-### Project Structure
-
-```
-src/
-├── CostEstimationCli/
-│   ├── Configuration/      # Configuration classes
-│   ├── Models/             # Data models
-│   ├── Repositories/       # API communication
-│   ├── Services/           # Business logic
-│   └── Program.cs          # Entry point
-└── CostEstimationCli.Tests/
-    ├── Repositories/       # Repository tests
-    └── Services/           # Service tests
-```
-
 ## Contributing
 
 We love contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
