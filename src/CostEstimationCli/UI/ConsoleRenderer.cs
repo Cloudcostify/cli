@@ -43,7 +43,7 @@ public static class ConsoleRenderer
 
     public static void RenderHeader(IConfiguration configuration, IInfrastructureProvider provider)
     {
-        AnsiConsole.Clear();
+        ClearConsoleIfInteractive();
         RenderBanner();
 
         var arrowIcon = SupportsUnicode ? "▲" : ">";
@@ -632,7 +632,7 @@ public static class ConsoleRenderer
 
     public static void RenderHelp()
     {
-        AnsiConsole.Clear();
+        ClearConsoleIfInteractive();
         RenderBanner();
 
         var arrowIcon = SupportsUnicode ? "▲" : ">";
@@ -645,7 +645,7 @@ public static class ConsoleRenderer
             .AddColumn(new TableColumn("").Width(34))
             .AddColumn(new TableColumn(""));
 
-        table.AddRow(new Markup($"[bold {NeonCyan}]Usage[/]"), new Markup("[white]cloudcostify[/] [dim][options][/]"));
+        table.AddRow(new Markup($"[bold {NeonCyan}]Usage[/]"), new Markup("[white]cloudcostify[/] [dim][[options]][/]"));
         table.AddEmptyRow();
 
         table.AddRow(new Markup($"[bold {LightGrey}]OPTIONS[/]"), new Markup(""));
@@ -682,6 +682,21 @@ public static class ConsoleRenderer
             "gcp" or "google"    => CyberOrange,
             _                    => NeonCyan,
         };
+
+    private static void ClearConsoleIfInteractive()
+    {
+        if (Console.IsOutputRedirected || Console.IsErrorRedirected)
+            return;
+
+        try
+        {
+            AnsiConsole.Clear();
+        }
+        catch (IOException)
+        {
+            // Some hosts expose a console handle but still reject clear/cursor APIs.
+        }
+    }
 
     private static string FormatCurrencyPlain(decimal amount) =>
         $"${amount.ToString("N2", UsCulture)}";

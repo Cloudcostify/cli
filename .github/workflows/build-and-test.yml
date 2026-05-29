@@ -40,6 +40,9 @@ jobs:
     - name: Run tests
       run: dotnet test --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --logger trx --results-directory ./TestResults
 
+    - name: Pack CLI tool
+      run: dotnet pack src/CostEstimationCli/CostEstimationCli.csproj --configuration Release --no-build --output ./artifacts/nupkg
+
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always() && !env.ACT
@@ -64,6 +67,7 @@ jobs:
         name: build-artifacts
         path: |
           **/bin/Release/**
+          ./artifacts/nupkg/**
           !**/bin/Release/**/ref/**
           !**/bin/Release/**/*.pdb
 

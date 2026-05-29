@@ -2,8 +2,22 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <Version>1.0.0</Version>
-    <Description>Pulumi cost estimation CLI tool for consistent cost estimation in CI/CD pipelines</Description>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>cloudcostify</ToolCommandName>
+    <PackageId>Cloudcostify.Cli</PackageId>
+    <Version>1.0.0-beta1</Version>
+    <Authors>Cloudcostify</Authors>
+    <Company>Cloudcostify</Company>
+    <Description>Pulumi cost estimation CLI for consistent cost estimation in your CI/CD pipeline.</Description>
+    <PackageProjectUrl>https://cloudcostify.io</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/cloudcostify/cli</RepositoryUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedAllSources>true</EmbedAllSources>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <AssemblyName>cloudcostify</AssemblyName>
   </PropertyGroup>
 
@@ -23,16 +37,23 @@
   <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
     <None Update="appsettings.Development.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\..\samples\**\*.*">
+    <Content Include="..\..\samples\**\*.*"
+             Exclude="..\..\samples\**\bin\**;..\..\samples\**\obj\**;..\..\samples\**\.gitignore"
+             Pack="false">
       <Link>samples\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
 

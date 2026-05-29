@@ -16,23 +16,31 @@ This tool ensures consistent cloud infrastructure cost estimation in your releas
 - 📊 **Detailed Cost Breakdown**: Get costs per hour, day, week, month, quarter, and year
 - 🎨 **Rich Console Output**: Beautiful terminal output with tables and formatting
 - 🔧 **Flexible Configuration**: Configure via appsettings.json or environment variables
-- 🧪 **Well-Tested**: Comprehensive unit test coverage with TUnit
-- 🏗️ **Modern Architecture**: Built with dependency injection and clean architecture principles
+
+## Supported Infrastructure as Code frameworks
+
+| Framework | Supported |
+|---|---|
+| Pulumi  | ✅ - All Languages |
+| AWS CDK | Coming soon |
+| Bicep | Coming soon |
+
+More infrastructure as code frameworks coming soon — let us know which you need
 
 ## Supported Resources
 
-### Azure
-- AKS Managed Clusters
-  - Node Pools
-- Virtual Machine
-  - Virtual Machine Scale-Set
-- SQL Database
-- Managed SQL Database
+| Resource | Provider | Supported |
+|---|---|---|
+| AKS Managed Cluster | Azure | ✅ |
+| AKS Node Pool | Azure | ✅ |
+| Virtual Machine | Azure | ✅ |
+| Virtual Machine Scale Set | Azure | ✅ |
+| SQL Database | Azure | ✅ |
+| Managed SQL Database | Azure | ✅ |
+| EC2 Instance | AWS | Coming soon |
+| RDS | AWS | Coming soon |
 
-### AWS
-- Currently no support (coming)
-
-More resources and providers coming soon - let us know which you need
+More resources and providers coming soon — let us know which you need
 
 ## Installation
 
@@ -41,6 +49,26 @@ More resources and providers coming soon - let us know which you need
 - .NET 10.0 SDK or later
 - Pulumi CLI installed (not required for demo mode)
 - Valid Cloudcostify API key (sign up at [cloudcostify.io](https://cloudcostify.io/))
+
+### NuGet Global Tool
+
+Install the published prerelease globally:
+
+```bash
+dotnet tool install --global Cloudcostify.Cli --version 1.0.0-beta1 --prerelease
+```
+
+Update an existing installation:
+
+```bash
+dotnet tool update --global Cloudcostify.Cli --version 1.0.0-beta1 --prerelease
+```
+
+Run the tool:
+
+```bash
+cloudcostify
+```
 
 ### Demo Mode (Quick Start)
 
@@ -66,6 +94,18 @@ dotnet build
 
 ```bash
 dotnet run --project src/CostEstimationCli/CostEstimationCli.csproj
+```
+
+### Build a Local Tool Package
+
+```bash
+dotnet pack src/CostEstimationCli/CostEstimationCli.csproj --configuration Release --output ./artifacts/nupkg
+```
+
+Install the local package without publishing to NuGet:
+
+```bash
+dotnet tool install --tool-path ./.tools/cloudcostify --add-source ./artifacts/nupkg Cloudcostify.Cli --version 1.0.0-beta1
 ```
 
 ## Configuration
@@ -189,6 +229,12 @@ dotnet build
 
 ```bash
 dotnet test
+```
+
+### Packing the Global Tool
+
+```bash
+dotnet pack src/CostEstimationCli/CostEstimationCli.csproj --configuration Release
 ```
 
 ### Code Coverage
