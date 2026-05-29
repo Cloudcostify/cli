@@ -282,6 +282,7 @@ If you encounter issues or have questions:
 1. Check the [documentation](https://cloudcostify.io/)
 2. Search [existing issues](https://github.com/cloudcostify/cli/issues)
 3. Create a [new issue](https://github.com/cloudcostify/cli/issues/new/choose)
+4. Reach out on email to hello@cloudcostify.io
 
 ---
 
