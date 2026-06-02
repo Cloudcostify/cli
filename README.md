@@ -9,45 +9,30 @@
 
 This tool ensures consistent cloud infrastructure cost estimation in your release pipeline running Pulumi infrastructure code before deploying resources. Get cost estimates for your infrastructure changes before they hit production.
 
-## Features
+---
 
-- 🚀 **CI/CD Integration**: Works seamlessly in GitHub Actions
-- ☁️ **Multi-Cloud Support**: Azure resources (with more providers coming)
-- 📊 **Detailed Cost Breakdown**: Get costs per hour, day, week, month, quarter, and year
-- 🎨 **Rich Console Output**: Beautiful terminal output with tables and formatting
-- 🔧 **Flexible Configuration**: Configure via appsettings.json or environment variables
+## 📖 Documentation
+- 🚀 [Installation & Quick Start](#installation)
+- 🔧 [Configuration guide](docs/configuration.md)
+- 🤖 [CI/CD Pipeline Integration](docs/cicd-integration.md)
+- 👩‍💻 [Contribute to the project (Developer guide)](CONTRIBUTING.md)
+
+---
 
 ## Supported Infrastructure as Code frameworks
 
-| Framework | Supported |
-|---|---|
-| Pulumi  | ✅ - All Languages |
-| AWS CDK | Coming soon |
-| Bicep | Coming soon |
+- ⚙️ [Supported frameworks](docs/supported-iac-frameworks.md)
 
-More infrastructure as code frameworks coming soon — let us know which you need
+---
 
-## Supported Resources
+## Supported Cloud Resources
 
-| Resource | Provider | Supported |
-|---|---|---|
-| AKS Managed Cluster | Azure | ✅ |
-| AKS Node Pool | Azure | ✅ |
-| Virtual Machine | Azure | ✅ |
-| Virtual Machine Scale Set | Azure | ✅ |
-| SQL Database | Azure | ✅ |
-| Managed SQL Database | Azure | ✅ |
-| EC2 Instance | AWS | Coming soon |
-| RDS | AWS | Coming soon |
-
-More resources and providers coming soon — let us know which you need
+- ⚙️ [Supported Cloud Resources](docs/supported-cloud-resources.md)
 
 ## Installation
 
 ### Prerequisites
 
-- .NET 10.0 SDK or later
-- Pulumi CLI installed (not required for demo mode)
 - Valid Cloudcostify API key (sign up at [cloudcostify.io](https://cloudcostify.io/))
 
 ### NuGet Global Tool
