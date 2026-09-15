@@ -48,8 +48,9 @@ Public .NET global tool (`Cloudcostify.Cli`, command `cloudcostify`) that
 estimates cloud infrastructure cost from Pulumi (and other IaC) preview
 output, for local use and in CI/CD pipelines ahead of `Cloudcostify/github-action`.
 This repository owns CLI UX, IaC-provider parsing, local credential/config
-handling, and the API client. It does not own the pricing/estimation API
-itself — that lives in `Cloudcostify/platform`.
+handling, and the API client. The pricing and estimation APIs are provided
+by Cloudcostify backend services and are outside this repository's
+ownership.
 
 ## Components
 
@@ -62,6 +63,10 @@ itself — that lives in `Cloudcostify/platform`.
   supported providers/resources).
 - `samples/` — sample IaC projects for manual testing.
 - `artifacts/` — build/pack output (generated; do not hand-edit).
+- `.github/workflows/release.yml` — on a `v*` tag push, publishes
+  self-contained per-platform binaries and a `SHA256SUMS` checksum manifest
+  as GitHub release assets. `Cloudcostify/github-action` downloads and
+  checksum-verifies against these assets.
 
 ## Build, test, package, release
 
@@ -78,19 +83,20 @@ runner.
 - CI is `.github/workflows/build-and-test.yml`: restore, build, test with
   coverage, pack, then (on push to `main`/`develop`) an integration job that
   runs the built CLI against the live API.
-- `src/CostEstimationCli/CostEstimationCli.csproj` conditionally references
-  SaaS-Factory's `AppBlueprint.CliKit` as a local `ProjectReference` when
-  `AppBlueprintCliKitProjectPath` resolves (a developer machine with a
-  sibling SaaS-Factory checkout), and otherwise falls back to the
-  `SaaS-Factory.AppBlueprint.CliKit` NuGet package. Local project-reference
-  builds and the packaged NuGet-based build can diverge. Per the canonical
-  package-consumption verification rule, a change touching this dependency
-  must also be verified against the packaged (NuGet) path, not only the
-  local project reference.
-- Releases are published as GitHub release tags
-  (`releases/download/<tag>/cloudcostify-<rid>`), consumed by
-  `Cloudcostify/github-action`. Publishing a release is a human-authorized
-  action, not something an agent does unprompted.
+- `src/CostEstimationCli/CostEstimationCli.csproj` resolves a shared CLI
+  toolkit dependency either via a local `ProjectReference` (when
+  `AppBlueprintCliKitProjectPath` points at an existing project in the build
+  environment) or via the packaged `SaaS-Factory.AppBlueprint.CliKit` NuGet
+  package otherwise. These two resolution paths can diverge. Per the
+  canonical package-consumption verification rule, a change touching this
+  dependency must be verified against the packaged (NuGet) path, not only
+  whichever reference resolved locally.
+- A release is a `v*` tag push, which triggers `release.yml` to publish
+  per-platform binaries (`cloudcostify-<rid>`, `.exe` on Windows) and a
+  `SHA256SUMS` manifest as GitHub release assets, consumed by
+  `Cloudcostify/github-action`. Creating and pushing a tag is a
+  human-authorized action, not something an agent does unprompted; adding or
+  changing the workflow that would run on that tag is a normal code change.
 - Contribution conventions (branch/commit style, code style, test
   frameworks) are documented in `CONTRIBUTING.md` and `.editorconfig`; follow
   those rather than duplicating them here.
@@ -112,3 +118,6 @@ runner.
   packed/NuGet-consumption path, not just the local project reference.
 - Apply the canonical review-gate routing before any change to credential
   handling, the setup wizard, or outbound HTTP/API-client behavior.
+- When changing `release.yml`, verify each published binary's filename
+  exactly matches an entry in `SHA256SUMS` and that the checksum is computed
+  from the final release artifact, not an intermediate build output.

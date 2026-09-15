@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish release assets
+    # Redundant with the tag-only trigger above, but keeps this job a no-op
+    # if the workflow is ever invoked another way (e.g. workflow_dispatch is
+    # added later) without a real v* tag behind it.
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Publish self-contained binaries
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+
+          rids=(linux-x64 linux-arm64 osx-x64 osx-arm64 win-x64)
+
+          for rid in "${rids[@]}"; do
+            out="publish/${rid}"
+            echo "Publishing ${rid}..."
+            dotnet publish src/CostEstimationCli/CostEstimationCli.csproj \
+              --configuration Release \
+              --runtime "${rid}" \
+              --self-contained true \
+              -p:PublishSingleFile=true \
+              -p:IncludeNativeLibrariesForSelfExtract=true \
+              --output "${out}"
+
+            if [[ "${rid}" == win-* ]]; then
+              cp "${out}/cloudcostify.exe" "release-assets/cloudcostify-${rid}.exe"
+            else
+              cp "${out}/cloudcostify" "release-assets/cloudcostify-${rid}"
+            fi
+          done
+
+          # Belt-and-suspenders: `cp` above already fails closed if a publish
+          # silently produced no binary, but assert the exact expected count
+          # too so a partial release can never go out with a misleading
+          # "success" from this step.
+          actual_count=$(find release-assets -maxdepth 1 -type f -name 'cloudcostify-*' | wc -l)
+          if [[ "${actual_count}" -ne "${#rids[@]}" ]]; then
+            echo "::error::Expected ${#rids[@]} release binaries, found ${actual_count}." >&2
+            exit 1
+          fi
+
+          ls -la release-assets
+
+      - name: Generate SHA256SUMS
+        working-directory: release-assets
+        run: |
+          set -euo pipefail
+          sha256sum cloudcostify-* > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-assets/cloudcostify-*
+            release-assets/SHA256SUMS
+          generate_release_notes: true
+          fail_on_unmatched_files: true
