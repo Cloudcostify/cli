@@ -51,15 +51,13 @@ jobs:
         path: src/CostEstimationCli.Tests/TestResults/*.trx
         if-no-files-found: error
 
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v4
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
       if: success() && !env.ACT
       with:
-        files: src/CostEstimationCli.Tests/TestResults/*.cobertura.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
-        token: ${{ secrets.CODECOV_TOKEN }}
+        name: coverage-report
+        path: src/CostEstimationCli.Tests/TestResults/*.cobertura.xml
+        if-no-files-found: error
 
     - name: Publish build artifacts
       uses: actions/upload-artifact@v4
