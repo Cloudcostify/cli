@@ -89,7 +89,7 @@ export PulumiProjectName="MyProject"
 
 ## Public API
 
-Send a Pulumi preview directly to `POST https://api.cloudcostify.io/costestimation/costestimate`. Create an API key in the [dashboard](https://accounts.cloudcostify.io/) and send it in the `X-API-Key` header. The legacy `api_key` header is also accepted.
+Send a Pulumi preview directly to `POST https://api.cloudcostify.io/costestimation/costestimate`. Create an API key in the [dashboard](https://accounts.cloudcostify.io/) and send it in the `X-API-Key` header.
 
 Save this request body as `request.json`:
 
