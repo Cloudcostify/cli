@@ -86,6 +86,11 @@ export CLOUDCOSTIFY_PULUMI_PROJECT_DIRECTORY_PATH="./infrastructure"
 export PulumiProjectName="MyProject"
 ```
 
+## Public API
+
+If you prefer to send your Pulumi JSON query directly to the API that the Cli use, you can call it as POST request to `https://api.cloudcostify.io/costestimation/costestimate`.
+You authenticate the request with `x-api-key` header.
+
 ## Security & Privacy
 
 We only transmit an anonymous list of resource types and quantities (e.g., '1x Standard_D2_v2 VM, 1x AKS Cluster') required to calculate the cost. Your source code, variables, and cloud credentials never leave your infrastructure. You can verify this by reviewing the [CLI](https://github.com/cloudcostify/cli) and [GitHub Action](https://github.com/cloudcostify/github-action) source code on GitHub.
