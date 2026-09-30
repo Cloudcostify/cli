@@ -28,7 +28,7 @@ public class ApiRepository : IApiRepository
         // Configure HTTP client with API key if authentication is enabled
         if (_settings.Authentication.Enabled && !string.IsNullOrEmpty(_settings.ApiKey))
         {
-            _httpClient.DefaultRequestHeaders.Add("Authorization", _settings.ApiKey);
+            _httpClient.DefaultRequestHeaders.Add("X-API-Key", _settings.ApiKey);
         }
     }
 
@@ -93,7 +93,9 @@ public class ApiRepository : IApiRepository
         {
             _logger.LogInformation("Validating license");
 
-            var licenseUrl = $"{_settings.BaseUrl}/licensing?api_key={apiKey}";
+            var licenseUrl = new Uri(
+                new Uri(_settings.BaseUrl),
+                $"/licensing?api_key={Uri.EscapeDataString(apiKey)}");
             var response = await _httpClient.GetAsync(licenseUrl, cancellationToken);
 
             response.EnsureSuccessStatusCode();

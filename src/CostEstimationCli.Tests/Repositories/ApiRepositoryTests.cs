@@ -102,4 +102,43 @@ public class ApiRepositoryTests
         await act.Should().ThrowAsync<ArgumentException>()
             .WithParameterName("apiKey");
     }
+
+    [Test]
+    public async Task GetCostEstimateAsync_SendsDashboardKeyToCostEstimateEndpoint()
+    {
+        var handler = new RecordingHandler();
+        using var client = new HttpClient(handler);
+        _settings.Value.Returns(new CostEstimationSettings
+        {
+            BaseUrl = "https://api.cloudcostify.io/costestimation/costestimate",
+            ApiKey = "cc_live_test",
+            Authentication = new AuthenticationSettings { Enabled = true }
+        });
+
+        var repository = new ApiRepository(client, _settings, _logger);
+        var act = async () => await repository.GetCostEstimateAsync("{}");
+
+        await act.Should().ThrowAsync<HttpRequestException>();
+        handler.RequestUri.Should().Be("https://api.cloudcostify.io/costestimation/costestimate");
+        handler.ApiKey.Should().Be("cc_live_test");
+        handler.HasAuthorizationHeader.Should().BeFalse();
+    }
+
+    private sealed class RecordingHandler : HttpMessageHandler
+    {
+        public string? RequestUri { get; private set; }
+        public string? ApiKey { get; private set; }
+        public bool HasAuthorizationHeader { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            RequestUri = request.RequestUri?.ToString();
+            ApiKey = request.Headers.TryGetValues("X-API-Key", out var values)
+                ? values.SingleOrDefault()
+                : null;
+            HasAuthorizationHeader = request.Headers.Authorization is not null;
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.Unauthorized));
+        }
+    }
 }
