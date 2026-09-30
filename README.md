@@ -14,6 +14,7 @@ This tool ensures consistent cloud infrastructure cost estimation in your releas
 ## 📖 Documentation
 
 - 🚀 [Installation & Quick Start](#installation)
+- 🔌 [Public API curl example](#public-api)
 - 🏗️ [Supported IaC Frameworks](docs/supported-iac-frameworks.md)
 - ☁️ [Supported Cloud Resources](docs/supported-cloud-resources.md)
 
@@ -88,8 +89,78 @@ export PulumiProjectName="MyProject"
 
 ## Public API
 
-If you prefer to send your Pulumi JSON query directly to the API that the Cli use, you can call it as POST request to `https://api.cloudcostify.io/costestimation/costestimate`.
-You authenticate the request with `x-api-key` header.
+Send a Pulumi preview directly to `POST https://api.cloudcostify.io/costestimation/costestimate`. Create an API key in the [dashboard](https://accounts.cloudcostify.io/) and send it in the `X-API-Key` header. The legacy `api_key` header is also accepted.
+
+Save this request body as `request.json`:
+
+```json
+{
+  "steps": [
+    {
+      "op": "create",
+      "urn": "res-compute-virtualmachine-01",
+      "newState": {
+        "urn": "res-compute-virtualmachine-01",
+        "type": "azure-native:compute:VirtualMachine",
+        "inputs": {
+          "location": "westeurope",
+          "vmName": "[redacted]",
+          "resourceGroupName": "[redacted]",
+          "hardwareProfile": {
+            "vmSize": "Standard_D2s_v3"
+          },
+          "osProfile": {
+            "linuxConfiguration": {}
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
+Replace `YOUR_API_KEY` with your dashboard key:
+
+```bash
+curl --request POST "https://api.cloudcostify.io/costestimation/costestimate" --header "X-API-Key: YOUR_API_KEY" --header "Content-Type: application/json" --data-binary "@request.json"
+```
+
+In Windows PowerShell, run the same command with `curl.exe` instead of `curl`.
+
+An HTTP 200 response looks like this (selected fields shown; prices are illustrative and vary with current Azure pricing):
+
+```json
+{
+  "currency": "USD",
+  "cloudProvider": "Azure",
+  "aggregateCosts": {
+    "perHour": 0.10,
+    "perMonth": 73.00
+  },
+  "cloudResources": [
+    {
+      "virtualMachines": [
+        {
+          "name": "[redacted]",
+          "location": "westeurope",
+          "virtualMachineSku": {
+            "sku": "Standard_D2s_v3",
+            "price": 0.10,
+            "priceUnit": "PerHour",
+            "os": "Linux"
+          },
+          "aggregateVirtualMachineCosts": {
+            "perHour": 0.10,
+            "perMonth": 73.00
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+The API also accepts Pulumi stack exports with resources in `deployment.resources`. Remove resource names, credentials, and other sensitive values before sending JSON directly; the CLI sanitizes its payload when you use the CLI instead.
 
 ## Security & Privacy
 
