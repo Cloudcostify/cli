@@ -22,7 +22,7 @@ This tool ensures consistent cloud infrastructure cost estimation in your releas
 ### Prerequisites
 
 - [.NET 10 or later](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) - (Required for local CLI execution only)
-- Valid [**Cloudcostify API key**](https://cloudcostify.io)
+- Valid [**Cloudcostify API key**](https://accounts.cloudcostify.io/)
 
 ## Run the CLI locally
 
