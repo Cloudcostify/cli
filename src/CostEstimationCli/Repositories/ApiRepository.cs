@@ -22,8 +22,8 @@ public class ApiRepository : IApiRepository
         ILogger<ApiRepository> logger)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _settings = settings?.Value ?? throw new ArgumentNullException(nameof(settings));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _settings = settings?.Value ?? throw new ArgumentNullException(nameof(settings));
 
         // Configure HTTP client with API key if authentication is enabled
         if (_settings.Authentication.Enabled && !string.IsNullOrEmpty(_settings.ApiKey))

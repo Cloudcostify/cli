@@ -32,13 +32,13 @@ jobs:
       run: dotnet --version
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore docs/CostEstimationCli.slnx
 
     - name: Build solution
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build docs/CostEstimationCli.slnx --configuration Release --no-restore
 
     - name: Run tests
-      run: dotnet test --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage" --logger trx --results-directory ./TestResults
+      run: dotnet test src/CostEstimationCli.Tests/CostEstimationCli.Tests.csproj --configuration Release --no-build -- --report-trx --coverage --coverage-output-format cobertura --results-directory TestResults
 
     - name: Pack CLI tool
       run: dotnet pack src/CostEstimationCli/CostEstimationCli.csproj --configuration Release --no-build --output ./artifacts/nupkg
@@ -48,13 +48,14 @@ jobs:
       if: always() && !env.ACT
       with:
         name: test-results
-        path: ./TestResults/*.trx
+        path: src/CostEstimationCli.Tests/TestResults/*.trx
+        if-no-files-found: error
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4
       if: success() && !env.ACT
       with:
-        files: '**/coverage.cobertura.xml'
+        files: src/CostEstimationCli.Tests/TestResults/*.cobertura.xml
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: false
@@ -71,8 +72,8 @@ jobs:
           !**/bin/Release/**/ref/**
           !**/bin/Release/**/*.pdb
 
-  integration-test:
-    name: Integration Test
+  cli-smoke-test:
+    name: CLI Smoke Test
     runs-on: ubuntu-latest
     needs: build
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
@@ -89,15 +90,5 @@ jobs:
     - name: Build CLI
       run: dotnet build src/CostEstimationCli/CostEstimationCli.csproj --configuration Release
 
-    - name: Run CLI (dry run)
-      working-directory: src/CostEstimationCli
-      run: dotnet run --budget 500 --configuration Release
-      continue-on-error: true
-      env:
-        DOTNET_ENVIRONMENT: Production
-        CLOUDCOSTIFY_BASE_URL: ${{ secrets.CLOUDCOSTIFY_BASE_URL || 'https://api.cloudcostify.io/api/cost-estimates' }}
-        CLOUDCOSTIFY_API_KEY: ${{ secrets.CLOUDCOSTIFY_API_KEY }}
-        CLOUDCOSTIFY_PULUMI_PROJECT_STACK_NAME: ${{ secrets.CLOUDCOSTIFY_PULUMI_PROJECT_STACK_NAME }}
-        CLOUDCOSTIFY_PULUMI_PROJECT_DIRECTORY_PATH: ${{ secrets.CLOUDCOSTIFY_PULUMI_PROJECT_DIRECTORY_PATH }}
-        PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-        PulumiProjectName: ${{ secrets.PULUMI_PROJECT_NAME }}
+    - name: Run CLI help
+      run: dotnet run --project src/CostEstimationCli/CostEstimationCli.csproj --configuration Release --no-build -- --help

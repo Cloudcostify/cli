@@ -94,9 +94,8 @@ public sealed class PayloadSanitizer : IPayloadSanitizer
             "estimatedBillablePitrBackupStorageInGB",
             "estimatedLtrBackupStorageInGB",
 
-            // Kubernetes / AKS — entire agentPoolProfiles array is whitelisted so
-            // node-pool names (agentPoolProfiles[].name) are preserved for the API.
-            "agentPoolProfiles",
+            // Kubernetes / AKS — recurse into agentPoolProfiles so node-pool
+            // names are redacted while sizing fields remain available.
             "count", "nodeCount", "kubernetesVersion", "osType",
 
             // VM scheduling
@@ -129,6 +128,7 @@ public sealed class PayloadSanitizer : IPayloadSanitizer
             "resourceName",
             "computerName",
             "vmName",
+            "vmScaleSetName",
             "dnsPrefix",
             "adminPassword",
             "adminUsername",
@@ -258,17 +258,8 @@ public sealed class PayloadSanitizer : IPayloadSanitizer
             return slug == "stack" ? $"stack-{count:D2}" : $"{slug}-{count:D2}";
         }
 
-        // For regular cloud resources, use the logical name from the URN's last
-        // segment (e.g. "test-rg", "sandbox-aks-cfy"). This keeps unsupportedResources
-        // names consistent with the naming convention used everywhere else and makes
-        // the output readable to the customer. Pulumi guarantees URN uniqueness within
-        // a stack, so logical names are safe collision-free tokens.
-        // URN format: urn:pulumi:{stack}::{project}::{type}::{name}
-        var segments = urn.Split("::");
-        if (segments.Length >= 4)
-            return segments[^1];
-
-        // Fallback: type-based opaque token
+        // Resource names can identify the customer, so use an opaque token
+        // derived from the resource type while keeping graph edges consistent.
         typeCounters.TryGetValue(slug, out var cnt);
         typeCounters[slug] = ++cnt;
         return $"res-{slug}-{cnt:D2}";
